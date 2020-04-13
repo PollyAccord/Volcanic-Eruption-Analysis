@@ -1,7 +1,9 @@
 import tkinter as tk
+from tkinter import filedialog
 import tkinter.ttk as ttk
 import interface as ui
 import base_handling as hand_base
+import os
 
 """
 Автор: 
@@ -19,13 +21,18 @@ def setup():
     ui.mainframe = tk.Frame(win)
     # создание элементов
     lsb_base = tk.Listbox(ui.mainframe, selectmode='browse')
+    ui.base_list = lsb_base
     for name, base in hand_base.work_list.items():
         lsb_base.insert(tk.END, name)
     lsb_base.bind('<Double-Button-1>', lambda *args: open_base(lsb_base.get(lsb_base.curselection())))
-
+    # кнопка добавления базы
+    add_button = tk.Button(ui.mainframe, text='Добавить')
+    add_button.bind('<Button-1>', load_button)
     # раставляем по сетке
     lsb_base.grid(row=0, column=0, sticky='nsew')
+    add_button.grid(row=1, column=0, sticky="nsew")
     ui.mainframe.grid(row=0, column=0)
+    ui.currentframe = ui.mainframe
     return win
 
 
@@ -43,13 +50,22 @@ def back(*args):
     ui.currentframe.tkraise()
 
 
+def load_button(*args):
+    path = filedialog.askopenfilename(initialdir="base/", filetypes=(("Database files", "*.csv;"), ("All files", "*.*")))
+    path = path.replace('/', "\\")
+    if os.path.exists(path):
+        base_name = hand_base.read_base(path)
+        ui.base_list.insert(tk.END, base_name)
+    else:
+        # кидаем exception
+        pass
+
 """
 Автор:  
 Цель: открытие базы данных по двойному нажатию на виджет списка 
 Вход: Нет 
 Выход: нет
 """
-
 
 def open_base(selected):
     base = hand_base.work_list.get(selected)
@@ -59,10 +75,10 @@ def open_base(selected):
     frame.grid_columnconfigure(1, weight=1)
     frame.grid_rowconfigure(1, weight=1)
     workframe = create_workspace(frame, base)
-    workframe.grid(row=1, column=1)
-    #back_button = tk.Button(frame, text='Закрыть базу')
+    workframe.grid(row=1, column=0)
+    #back_button = tk.Button(frame, text='Добавить базу базу')
     #back_button.bind('<Button-1>', back)
-    #back_button.grid(row=0, column=0, sticky)
+    #back_button.grid(row=0, column=0, sticky="W")
     frame.grid(row=1, column=0)
     ui.currentframe = frame
     ui.currentframe.tkraise()
@@ -99,4 +115,7 @@ def create_workspace(win, selected_base):
 
 
 root = setup()
+root.minsize(800, 200)
+root.maxsize(1200, 800)
+
 root.mainloop()
