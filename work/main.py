@@ -5,8 +5,6 @@ import interface as ui
 import base_handling as hand_base
 import os
 
-save_icon = None
-add_icon = None
 
 """
 Автор: 
@@ -21,17 +19,20 @@ def setup():
     win.grid_rowconfigure(0, weight=1)
     win.grid_rowconfigure(1, weight=100)
     win.grid_rowconfigure(3, weight=1)
-    global save_icon
-    global add_icon
-    save_icon = tk.PhotoImage(file="pic/save_icon.gif")
-    add_icon = tk.PhotoImage(file="pic/add_icon.gif")
+
+    win.grid_columnconfigure(0, weight=1)
+    win.grid_columnconfigure(1, weight=100)
+
+    ui.save_icon = tk.PhotoImage(file="pic/save_icon.gif")
+    ui.add_icon = tk.PhotoImage(file="pic/add_icon.gif")
+    ui.edit_icon = tk.PhotoImage(file="pic/edit_icon.gif")
     win.title('Volcano Analyse')
 
     # создаем и заполняем строчку меню --------------------
     # todo: придумать и заполнить до конца (возможно перенести в interface модуль)
     menubar = tk.Menu(win)
     file = tk.Menu(menubar, tearoff=0)
-    file.add_command(label="New", command=load_button)
+    file.add_command(label="New", command=load_event)
     file.add_command(label="Exit", command=win.quit)
     menubar.add_cascade(label="File", menu=file)
 
@@ -46,14 +47,17 @@ def setup():
     # заканчивааем с меню ------------------------------
 
     # фрейм кнопочек ----------------------------------
-    tools_frame = tk.Frame(win, bg="black")
-    add_button = tk.Button(tools_frame, image=add_icon)
-    save_button = tk.Button(tools_frame, image=save_icon)
+    tools_frame = tk.Frame(win, bg="white")
+    add_button = tk.Button(tools_frame, image=ui.add_icon, relief="groove", bd=0, bg="white")
+    save_button = tk.Button(tools_frame, image=ui.save_icon, relief="groove", bd=0, bg="white")
+    edit_button = tk.Button(tools_frame, image=ui.edit_icon, relief="groove", bd=0, bg="white")
 
-    add_button.bind("<Button-1>", load_button)
+    add_button.bind("<Button-1>", load_event)
+    edit_button.bind("<Button-1>", lambda *args: edit_event(win))
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     save_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
+    edit_button.grid(row=0, column=2, padx=2, pady=2, sticky="NSEW")
     tools_frame.grid(row=0, column=0, columnspan=12, sticky="NSEW")
     # конец кнопочкам ----------------------------------
 
@@ -63,11 +67,17 @@ def setup():
     ui.base_list = lsb_base
     for name, base in hand_base.work_list.items():
         lsb_base.insert(tk.END, name)
-    lsb_base.bind('<Double-Button-1>', lambda *args: open_base(lsb_base.get(lsb_base.curselection())))
+    lsb_base.bind('<Double-Button-1>', lambda *args: open_base(win, lsb_base.get(lsb_base.curselection())))
     lsb_base.pack(side="left", fill="y", expand=True)
-    list_frame.grid(row=1, column=0, columnspan=3, rowspan=2, sticky="NSW")
+    list_frame.grid(row=1, column=0, sticky="NSW")
     # сделали лист ----------------------------------
 
+    # label приглашение к выбору --------------------
+    pls_select_frame = tk.Frame(win, bg="white")
+    lbl_select_pls = tk.Label(pls_select_frame, text="Пожалуйста, выберете базу данных", bg="white")
+    lbl_select_pls.pack(expand=True, fill="both")
+    pls_select_frame.grid(row=1, column=1, rowspan=2, sticky="NSEW")
+    # ----------------------------------------------
 
     # win.grid_columnconfigure(0, weight=1)
     # win.grid_rowconfigure(0, weight=1)
@@ -86,21 +96,7 @@ def setup():
     return win
 
 
-"""
-Автор:  
-Цель: обработчик кнопки закрыть базу
-Вход: Нет 
-Выход: объект главного окна
-"""
-
-
-def back(*args):
-    ui.currentframe.destroy()
-    ui.currentframe = ui.mainframe
-    ui.currentframe.tkraise()
-
-
-def load_button(*args):
+def load_event(*args):
     path = filedialog.askopenfilename(initialdir="base/",
                                       filetypes=(("Database files", "*.csv;"), ("All files", "*.*")))
     path = path.replace('/', "\\")
@@ -113,6 +109,42 @@ def load_button(*args):
     return "break"
 
 
+def edit_event(win, *args):
+    index = ui.table4base.index(ui.table4base.selection())
+    curr_item = hand_base.current_base.iloc[index, :]
+    edit_win = tk.Toplevel(win)
+    edit_win.title("Change field")
+    frame4labels = tk.Frame(edit_win)
+    frame4entries = tk.Frame(edit_win)
+    frame4button = tk.Frame(edit_win)
+    list4changes = {}
+    for i in hand_base.columns:
+        text = tk.StringVar()
+        text.set(curr_item[i])
+        list4changes[i] = text
+        tk.Label(frame4labels, text=i+":", anchor="e").pack(side="top", fill="x", expand=True, pady=5)
+        tk.Entry(frame4entries, textvariable=text).pack(side="top", fill="x", expand=True, pady=5)
+    save_changes_button = tk.Button(frame4button,  text="Save")
+    save_changes_button.pack(expand=False)
+    save_changes_button.bind("<Button-1>", lambda *args: save_changes_event(edit_win, index, list4changes))
+    edit_win.rowconfigure(0, pad=5)
+    edit_win.rowconfigure(1, pad=5)
+    edit_win.columnconfigure(0, pad=5)
+    edit_win.columnconfigure(1, pad=5)
+    frame4labels.grid(row=0, column=0, sticky="NSW")
+    frame4entries.grid(row=0, column=1, sticky="NSW")
+    frame4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
+
+
+def save_changes_event(win, index, new_values):
+    hand_base.current_base.iloc[index, :] = [x.get() for x in new_values.values()]
+    item = ui.table4base.selection()
+    for key, value in new_values.items():
+        ui.table4base.set(item, column=key, value=value.get())
+    win.destroy()
+
+
+
 """
 Автор:  
 Цель: открытие базы данных по двойному нажатию на виджет списка 
@@ -121,22 +153,11 @@ def load_button(*args):
 """
 
 
-def open_base(selected):
-    base = hand_base.work_list.get(selected)
-    frame = tk.Frame(root)
-    frame.grid_columnconfigure(0, weight=1)
-    frame.grid_rowconfigure(0, weight=1)
-    frame.grid_columnconfigure(1, weight=1)
-    frame.grid_rowconfigure(1, weight=1)
-    workframe = create_workspace(frame, base)
-    workframe.grid(row=1, column=0)
-    # back_button = tk.Button(frame, text='Добавить базу базу')
-    # back_button.bind('<Button-1>', back)
-    # back_button.grid(row=0, column=0, sticky="W")
-    frame.grid(row=1, column=0)
-    ui.currentframe = frame
-    ui.currentframe.tkraise()
-
+def open_base(win, selected):
+    hand_base.current_base = hand_base.work_list.get(selected)
+    workframe = create_workspace(win, hand_base.current_base)
+    workframe.grid(row=1, column=1, rowspan=2, sticky="NSW")
+    
 
 """
 новая функция
@@ -147,7 +168,7 @@ def create_workspace(win, selected_base):
     # создаем и заполняем нашу таблицу
     title = hand_base.columns
     frame = tk.Frame(win)
-    tree = ttk.Treeview(frame, columns=title, height=15, show="headings", selectmode='browse')
+    tree = ttk.Treeview(frame, columns=title, height=30, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in selected_base.index:
         insert = list(selected_base.iloc[i, :])
@@ -155,21 +176,24 @@ def create_workspace(win, selected_base):
     # меняем ширину столбца для красоты
     for i in range(1, len(title) + 1):
         tree.column('#' + str(i), width=100, stretch=False)
-    # сроллбары для нее
+    # скроллбары для нее
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
     hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
     tree.configure(yscrollcommand=vsb.set)
     tree.configure(xscrollcommand=hsb.set)
 
     # пакуем все в фрейм, а его по сетке в окно
-    vsb.pack(side='right', fill='both')
+    ui.table4base = tree
     hsb.pack(side='bottom', fill='both')
-    tree.pack(side='top')
+    vsb.pack(side='right', fill='both')
+    tree.pack(side='top', expand=True, fill="y")
     return frame
 
 
 root = setup()
-
+root.config(background="white")
+root.minsize(100, 400)
+root.maxsize(1800, 1000)
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 widthRatio = 1200 / 1920

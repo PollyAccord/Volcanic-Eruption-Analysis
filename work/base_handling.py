@@ -10,7 +10,7 @@ columns = ['Year', 'Month', 'Day', 'Name', 'Location', 'Country', 'Latitude', 'L
            'Elevation', 'Type', 'VEI', 'Agent', 'DEATHS', 'MISSING', 'DAMAGE_MILLIONS_DOLLARS',
            'HOUSES_DESTROYED']
 work_list = {'Volcano Eruption1': bd, 'Volcano Eruption2': bd, 'Volcano Eruption3': bd, }
-
+current_base = np.array([])
 
 def read_base(path):
     base = pd.read_csv(path, header=0)[['Year', 'Month', 'Day', 'Name', 'Location', 'Country', 'Latitude', 'Longitude',
