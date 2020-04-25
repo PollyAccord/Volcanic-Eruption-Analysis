@@ -6,9 +6,8 @@ import error_edit_windows as err
 import globals as glob
 import pandas as pd
 
+sort = True
 load_event = None
-list4ComboBox = ['Month', 'VEI', 'Agent']
-list4RadioButton = ['TSU', 'EQ']
 save_icon = None
 add_icon = None
 edit_icon = None
@@ -34,7 +33,10 @@ def edit_event(win, title_columns):
     list4changes = {}
     for i in title_columns:
         text = tk.StringVar()
-        text.set(curr_item[i])
+        if pd.isna(curr_item[i]) or (i in ['Year', 'Month', 'Day'] and curr_item[i] == 0):
+            text.set("")
+        else:
+            text.set(curr_item[i])
         list4changes[i] = text
         tk.Label(frame4labels, text=i + ":", anchor="e").pack(side="top", fill="x", expand=True, pady=5)
         tk.Entry(frame4entries, textvariable=text).pack(side="top", fill="x", expand=True, pady=5)
@@ -61,7 +63,9 @@ def edit_event(win, title_columns):
 
 
 def save_changes_event(win, index, new_values):
-    glob.current_base.iloc[index, :] = [x.get() for x in new_values.values()]
+    glob.current_base.iloc[index, :] = [pd.to_numeric(x.get(), errors="ignore") for x in new_values.values()]
+    cast_datatypes()
+    glob.work_list[glob.current_base_name] = glob.current_base
     item = glob.table4base.selection()
     for key, value in new_values.items():
         glob.table4base.set(item, column=key, value=value.get())
@@ -162,6 +166,34 @@ def create_menu(win):
     win.config(menu=menubar)
 
 
+def cast_datatypes():
+    glob.current_base[['Year', 'Month', 'Day']] = glob.current_base[['Year', 'Month', 'Day']].replace(np.nan, 0)
+    glob.current_base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = glob.current_base[
+        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
+    glob.current_base = glob.current_base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32'})
+    glob.current_base = glob.current_base.astype({'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
+                                                  'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
+                                                  'DAMAGE_MILLIONS_DOLLARS': 'float64'})
+
+
+def update_workspace():
+    for i in range(len(glob.current_base.index)):
+        insert = glob.current_base.iloc[i, :]
+        for j in glob.columns:
+            glob.table4base.set(i, column=j, value=insert[j])
+
+
+def workspace_onclick_event(event):
+    global sort
+    sort = not sort
+    tree = glob.table4base
+    if tree.identify_region(event.x, event.y) == "heading":
+        column = tree.identify_column(event.x)
+        index4column = int(column[1:])
+        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort, ignore_index=True)
+        update_workspace()
+
+
 """
     Автор: 
     Цель:   создает рабочее пространство с таблицей 
@@ -180,13 +212,14 @@ def create_workspace(win, selected_base, title_columns):
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(selected_base.index)):
         insert = list(selected_base.iloc[i, :])
-        tree.insert('', 'end', values=insert)
+        tree.insert('', 'end', iid=i, values=insert)
     # меняем ширину столбца для красоты
     for i in range(1, len(title) + 1):
         tree.column('#' + str(i), width=100, stretch=False)
     # скроллбары для нее
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
     hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+    tree.bind("<Button-1>", lambda event: workspace_onclick_event(event))
     tree.configure(yscrollcommand=vsb.set)
     tree.configure(xscrollcommand=hsb.set)
 
@@ -347,16 +380,17 @@ def accept(root, list4values, title_columns):
     if (list4values['Longitude'].get() > 180) or (list4values['Longitude'].get() < -180):
         flag = False
     if flag:
-        glob.current_base = glob.current_base.append({k: v.get() for k, v in list4values.items()}, ignore_index=True)
+        glob.current_base = glob.current_base.append(
+            {k: pd.to_numeric(v.get(), errors="ignore") for k, v in list4values.items()}, ignore_index=True)
         glob.work_list[glob.current_base_name] = glob.current_base
-
-        new_item = glob.table4base.insert('', 'end')
+        new_item = glob.table4base.insert('', 'end', iid=len(glob.current_base.index) - 1)
         for i in title_columns:
             glob.table4base.set(new_item, column=i, value=list4values[i].get())
         mb.showinfo("Сообщение", "Занесено в базу")
         root.destroy()
     else:
         err.error("Данные введены некорректно, повторите попытку")
+
 
 def db_is_not_saved():
     pass

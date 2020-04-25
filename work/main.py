@@ -40,6 +40,8 @@ def setup():
     lbl_select_pls = tk.Label(pls_select_frame, text="Пожалуйста, выберете базу данных", bg="white")
     lbl_select_pls.pack(expand=True, fill="both")
     pls_select_frame.grid(row=1, column=1, rowspan=2, sticky="NSEW")
+
+    glob.root = win
     return win
 
 
