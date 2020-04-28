@@ -1,9 +1,12 @@
-import tkinter as tk
-from tkinter import filedialog
-import interface as ui
-import base_handling as hand_base
 import os
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import filedialog
+
+import base_handling as hand_base
 import globals as glob
+import interface as ui
+
 """
 Автор: 
 Цель: создание главного окна и расстановка всех его компонентов 
@@ -14,17 +17,13 @@ import globals as glob
 
 def setup():
     win = tk.Tk()
-    win.grid_rowconfigure(0, weight=1)
-    win.grid_rowconfigure(1, weight=100)
-    win.grid_rowconfigure(3, weight=1)
-
-    win.grid_columnconfigure(0, weight=1)
-    win.grid_columnconfigure(1, weight=100)
-
     ui.save_icon = tk.PhotoImage(file="pic/save_icon.gif")
     ui.add_icon = tk.PhotoImage(file="pic/add_icon.gif")
     ui.edit_icon = tk.PhotoImage(file="pic/edit_icon.gif")
+    ui.load_icon = tk.PhotoImage(file="pic/load_icon.gif")
     win.title('Volcano Analyse')
+
+    pane = ttk.Panedwindow(win, orient=tk.HORIZONTAL, width=1)
 
     # создаем и заполняем строчку меню
     ui.create_menu(win)
@@ -33,15 +32,24 @@ def setup():
     ui.create_toolbar(win, glob.columns)
 
     # лист для баз данных
-    ui.create_list4db(win, glob.work_list, glob.columns)
+    frame = ui.create_list4db(pane, glob.work_list, glob.columns)
 
     # label приглашение к выбору
-    pls_select_frame = tk.Frame(win, bg="white")
+    pls_select_frame = tk.Frame(pane, bg="white")
     lbl_select_pls = tk.Label(pls_select_frame, text="Пожалуйста, выберете базу данных", bg="white")
     lbl_select_pls.pack(expand=True, fill="both")
-    pls_select_frame.grid(row=1, column=1, rowspan=2, sticky="NSEW")
+    # pls_select_frame.grid(row=1, column=1, rowspan=2, sticky="NSEW")
 
-    glob.root = win
+    pane.add(frame, weight=1)
+    pane.add(pls_select_frame, weight=9)
+    pane.grid(row=1, column=0, columnspan=3, sticky="NSEW")
+
+    win.grid_rowconfigure(0, weight=1)
+    win.grid_rowconfigure(1, weight=99)
+    win.grid_rowconfigure(3, weight=1)
+
+    win.grid_columnconfigure(0, weight=1, minsize=150)
+    win.grid_columnconfigure(1, weight=99)
     return win
 
 
@@ -51,7 +59,7 @@ def load_event(*args):
     path = path.replace('/', "\\")
     if os.path.exists(path):
         base_name = hand_base.read_base(path)
-        ui.base_list.insert(tk.END, base_name)
+        glob.base_list.insert(tk.END, base_name)
     else:
         # кидаем exception
         pass
@@ -61,7 +69,7 @@ def load_event(*args):
 ui.load_event = load_event
 root = setup()
 root.config(background="white")
-root.minsize(100, 400)
+root.minsize(400, 400)
 root.maxsize(1800, 1000)
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()

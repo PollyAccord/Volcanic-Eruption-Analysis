@@ -1,6 +1,6 @@
-import pandas as pd
-import numpy as np
 import globals as glob
+import numpy as np
+import pandas as pd
 
 # ['Year', 'Month', 'Day', 'Name', 'Location', 'Country', 'Latitude', 'Longitude', 'Elevation', 'Type', 'VEI', 'Agent', 'DEATHS', 'INJURIES', 'MISSING', 'DAMAGE_MILLIONS_DOLLARS', 'TSU', 'EQ']
 bd = pd.read_csv('base/volcano.csv', header=0)[['Year', 'Month', 'Day', 'Name', 'Location',
@@ -8,12 +8,12 @@ bd = pd.read_csv('base/volcano.csv', header=0)[['Year', 'Month', 'Day', 'Name', 
                                                 'Type', 'VEI', 'Agent', 'DEATHS', 'INJURIES', 'MISSING',
                                                 'DAMAGE_MILLIONS_DOLLARS', 'TSU', 'EQ']]
 bd[['Year', 'Month', 'Day']] = bd[['Year', 'Month', 'Day']].replace(np.nan, 0)
-bd[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = bd[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
+bd[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = bd[
+    ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
 bd = bd.astype({'Year': 'int64', 'Month': 'int64', 'Day': 'int64'})
 bd = bd.astype({'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
                 'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
                 'DAMAGE_MILLIONS_DOLLARS': 'float64'})
-print(bd.dtypes)
 glob.work_list['Volcano Eruption'] = bd
 
 

@@ -1,16 +1,22 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mb
-import numpy as np
+
 import error_edit_windows as err
 import globals as glob
+import numpy as np
 import pandas as pd
 
-sort = True
-load_event = None
+# набор глобальных переменных
+sort = True  # показывает, как отсортирована таблица и dataframe
+load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
+# иконки
 save_icon = None
 add_icon = None
 edit_icon = None
+load_icon = None
+
+# events ---------------------------------------------------------------------------------------
 
 """
 Автор:  
@@ -21,18 +27,24 @@ edit_icon = None
 
 
 def edit_event(win, title_columns):
+    # открыта ли база?
     if not err.is_db_open():
         return "break"
+    # получаем изменяемую строчку
     index = glob.table4base.index(glob.table4base.selection())
     curr_item = glob.current_base.iloc[index, :]
+    # создаем дочернее окно
     edit_win = tk.Toplevel(win)
     edit_win.title("Изменения данных поля таблицы")
+    # распологаем все необходимые элементы в этих фреймах
     frame4labels = tk.Frame(edit_win)
     frame4entries = tk.Frame(edit_win)
     frame4button = tk.Frame(edit_win)
     list4changes = {}
     for i in title_columns:
+        # все значения будут строкой, при сохранении в dataframe мы осуществим приведение чисел к числовому типу
         text = tk.StringVar()
+        # если атрибут nan или 0, то вместо него отображаем пустую строчку
         if pd.isna(curr_item[i]) or (i in ['Year', 'Month', 'Day'] and curr_item[i] == 0):
             text.set("")
         else:
@@ -42,7 +54,7 @@ def edit_event(win, title_columns):
         tk.Entry(frame4entries, textvariable=text).pack(side="top", fill="x", expand=True, pady=5)
     save_changes_button = tk.Button(frame4button, text="Сохранить")
     save_changes_button.pack(expand=False)
-    save_changes_button.bind("<Button-1>", lambda *args: save_changes_event(edit_win, index, list4changes))
+    save_changes_button.bind("<Button-1>", lambda *args: make_changes_event(edit_win, index, list4changes))
     edit_win.rowconfigure(0, pad=5)
     edit_win.rowconfigure(1, pad=5)
     edit_win.columnconfigure(0, pad=5)
@@ -50,6 +62,38 @@ def edit_event(win, title_columns):
     frame4labels.grid(row=0, column=0, sticky="NSW")
     frame4entries.grid(row=0, column=1, sticky="NSW")
     frame4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
+
+
+"""
+Автор: 
+Цель:  
+Вход:   
+Выход:  
+"""
+
+
+def add_event(*args):
+    # todo: сделать добавление новой базы
+    pass
+
+
+"""
+Автор: 
+Цель:   
+Вход:   
+Выход:   
+"""
+
+
+def save_event(*args):
+    # открыта ли база?
+    if not err.is_db_open():
+        return "break"
+    if not is_saved():
+        glob.current_base_name = glob.current_base_name.replace('*', '')
+        glob.work_list[glob.current_base_name] = glob.current_base
+        update_list()
+    # todo: сохранение в файл БД из словаря
 
 
 """
@@ -62,15 +106,56 @@ def edit_event(win, title_columns):
 """
 
 
-def save_changes_event(win, index, new_values):
+def make_changes_event(win, index, new_values):
+    # приводим все числа к числовому типу
     glob.current_base.iloc[index, :] = [pd.to_numeric(x.get(), errors="ignore") for x in new_values.values()]
+    # заменяем пустые строчки на nan и приводим тип всех столбцов таблицы к нужному типу
     cast_datatypes()
     glob.work_list[glob.current_base_name] = glob.current_base
     item = glob.table4base.selection()
     for key, value in new_values.items():
         glob.table4base.set(item, column=key, value=value.get())
+    glob.current_base_name += "*"
+    update_list()
     win.destroy()
+    update_workspace()
 
+
+"""
+Автор: 
+Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
+Вход:   объект главного окна,
+        ключ (имя) выбранной базы,
+        словарь текущий загруженных баз данных (имя: база данных),
+        список активных столбцов таблицы.
+Выход:  нет 
+"""
+
+
+def open_base(win, selected, dict4db, title_columns):
+    glob.current_base_list_id = selected
+    glob.current_base, glob.current_base_name = dict4db.get(
+        glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
+    work_frame = create_workspace(win, glob.current_base, title_columns)
+    # work_frame.grid(row=1, column=1, rowspan=2, sticky="NSW")
+    win.forget(1)
+    win.add(work_frame, weight=10000)
+
+
+def workspace_onclick_event(event):
+    global sort
+    sort = not sort
+    tree = glob.table4base
+    if tree.identify_region(event.x, event.y) == "heading":
+        column = tree.identify_column(event.x)
+        index4column = int(column[1:])
+        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort,
+                                                          ignore_index=True)
+        update_workspace()
+
+
+#  ---------------------------------------------------------------------------------------
+# frames =======================================================================================
 
 """
 Автор: 
@@ -87,16 +172,20 @@ def create_toolbar(win, title_columns):
     add_button = tk.Button(tools_frame, image=add_icon, relief="groove", bd=0, bg="white")
     save_button = tk.Button(tools_frame, image=save_icon, relief="groove", bd=0, bg="white")
     edit_button = tk.Button(tools_frame, image=edit_icon, relief="groove", bd=0, bg="white")
+    load_button = tk.Button(tools_frame, image=load_icon, relief="groove", bd=0, bg="white")
     add_field_button = tk.Button(tools_frame, relief="raised", text="Добавить поле", bd=2, bg="white")
 
-    add_button.bind("<Button-1>", load_event)
+    add_button.bind("<Button-1>", add_event)
+    save_button.bind("<Button-1>", save_event)
     edit_button.bind("<Button-1>", lambda *args: edit_event(win, title_columns))
+    load_button.bind("<Button-1>", load_event)
     add_field_button.bind("<Button-1>", lambda *args: add_inf(win, title_columns))
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
-    save_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
-    edit_button.grid(row=0, column=2, padx=2, pady=2, sticky="NSEW")
-    add_field_button.grid(row=0, column=3, padx=2, pady=2, sticky="NSEW")
+    load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
+    save_button.grid(row=0, column=2, padx=2, pady=2, sticky="NSEW")
+    edit_button.grid(row=0, column=3, padx=2, pady=2, sticky="NSEW")
+    add_field_button.grid(row=0, column=4, padx=2, pady=2, sticky="NSEW")
     tools_frame.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
@@ -111,33 +200,17 @@ def create_toolbar(win, title_columns):
 
 
 def create_list4db(win, dict4db, title_columns):
-    list_frame = tk.Frame(win)
+    list_frame = tk.LabelFrame(win, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
+                               bg='white')
     lsb_base = tk.Listbox(list_frame, selectmode='browse')
     for name, base in dict4db.items():
         lsb_base.insert(tk.END, name)
     glob.base_list = lsb_base
     lsb_base.bind('<Double-Button-1>',
                   lambda *args: open_base(win, lsb_base.curselection(), dict4db, title_columns))
-    lsb_base.pack(side="left", fill="y", expand=True)
-    list_frame.grid(row=1, column=0, sticky="NSW")
-
-
-"""
-Автор: 
-Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
-Вход:   объект главного окна,
-        ключ (имя) выбранной базы,
-        словарь текущий загруженных баз данных (имя: база данных),
-        список активных столбцов таблицы.
-Выход:  нет 
-"""
-
-
-def open_base(win, selected, dict4db, title_columns):
-    glob.current_base_list_id = selected
-    glob.current_base, glob.current_base_name = dict4db.get(glob.base_list.get(selected)), glob.base_list.get(selected)
-    work_frame = create_workspace(win, glob.current_base, title_columns)
-    work_frame.grid(row=1, column=1, rowspan=2, sticky="NSW")
+    lsb_base.pack(side="left", fill="both", expand=True)
+    return list_frame
+    # list_frame.grid(row=1, column=0, sticky="NSEW")
 
 
 """
@@ -152,7 +225,7 @@ def create_menu(win):
     global load_event
     menubar = tk.Menu(win)
     file = tk.Menu(menubar, tearoff=0)
-    file.add_command(label="New", command=load_event)
+    file.add_command(label="Load", command=load_event)
     file.add_command(label="Exit", command=win.quit)
     menubar.add_cascade(label="File", menu=file)
 
@@ -164,34 +237,6 @@ def create_menu(win):
     about.add_command(label="smth")
     menubar.add_cascade(label="About", menu=about)
     win.config(menu=menubar)
-
-
-def cast_datatypes():
-    glob.current_base[['Year', 'Month', 'Day']] = glob.current_base[['Year', 'Month', 'Day']].replace(np.nan, 0)
-    glob.current_base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = glob.current_base[
-        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
-    glob.current_base = glob.current_base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32'})
-    glob.current_base = glob.current_base.astype({'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
-                                                  'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
-                                                  'DAMAGE_MILLIONS_DOLLARS': 'float64'})
-
-
-def update_workspace():
-    for i in range(len(glob.current_base.index)):
-        insert = glob.current_base.iloc[i, :]
-        for j in glob.columns:
-            glob.table4base.set(i, column=j, value=insert[j])
-
-
-def workspace_onclick_event(event):
-    global sort
-    sort = not sort
-    tree = glob.table4base
-    if tree.identify_region(event.x, event.y) == "heading":
-        column = tree.identify_column(event.x)
-        index4column = int(column[1:])
-        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort, ignore_index=True)
-        update_workspace()
 
 
 """
@@ -207,7 +252,7 @@ def workspace_onclick_event(event):
 def create_workspace(win, selected_base, title_columns):
     # создаем и заполняем нашу таблицу
     title = title_columns
-    frame = tk.Frame(win)
+    frame = tk.LabelFrame(win, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
     tree = ttk.Treeview(frame, columns=title, height=30, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(selected_base.index)):
@@ -228,8 +273,77 @@ def create_workspace(win, selected_base, title_columns):
     glob.table4base = tree
     hsb.pack(side='bottom', fill='both')
     vsb.pack(side='right', fill='both')
-    tree.pack(side='top', expand=True, fill="y")
+    tree.pack(side='top')
     return frame
+
+
+#  =======================================================================================
+# updates =======================================================================================
+
+"""
+Автор: 
+Цель:   
+Вход:   
+Выход:   
+"""
+
+
+def update_list():
+    glob.base_list.delete(glob.current_base_list_id)
+    glob.base_list.insert(glob.current_base_list_id, glob.current_base_name)
+
+
+"""
+Автор: 
+Цель:   
+Вход:   
+Выход:   
+"""
+
+
+def update_workspace():
+    for i in range(len(glob.current_base.index)):
+        insert = glob.current_base.iloc[i, :]
+        for j in glob.columns:
+            glob.table4base.set(i, column=j, value=insert[j])
+
+
+# =======================================================================================
+
+
+"""
+Автор: 
+Цель:   
+Вход:   
+Выход:   
+"""
+
+
+def is_saved():
+    flag = True
+    if "*" in glob.current_base_name:
+        flag = False
+    return flag
+
+
+"""
+Автор: 
+Цель:   при добавлении в таблицу измененных пользователем данных могут возникнуть nan значения, 
+        их мы меняем на пустые строки или на 0, так же nan меняет типы столбцов на другой, 
+        здесь мы обратно приводим тип столбцов к нужному 
+Вход:  нет
+Выход:  нет 
+"""
+
+
+def cast_datatypes():
+    glob.current_base[['Year', 'Month', 'Day']] = glob.current_base[['Year', 'Month', 'Day']].replace(np.nan, 0)
+    glob.current_base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = glob.current_base[
+        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
+    glob.current_base = glob.current_base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32',
+                                                  'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
+                                                  'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
+                                                  'DAMAGE_MILLIONS_DOLLARS': 'float64'})
 
 
 """
@@ -390,7 +504,3 @@ def accept(root, list4values, title_columns):
         root.destroy()
     else:
         err.error("Данные введены некорректно, повторите попытку")
-
-
-def db_is_not_saved():
-    pass
