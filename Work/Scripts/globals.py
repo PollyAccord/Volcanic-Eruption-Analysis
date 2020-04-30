@@ -1,37 +1,103 @@
-import constants
+from Work.Scripts import constants
+from tkinter import Listbox
+from tkinter.ttk import Treeview
+from pandas import DataFrame
+import numpy as np
 
+
+columns: list = constants.origin_columns
 """
     В columns будут храниться все столбцы, отображаемые в данный момент в программе.
-    Этот способ удобен тем, что добавляться и удяляться столбцы будут 
-    автоматически, что менее трудозатратно, чем делать это вручную.
+    Программа будет автоматически отображать новые столбцы и убирать удаленные.  
 """
-columns = constants.origin_columns
 
+work_list: dict = {}
 """
-    work_list - словарь со значениями (Имя БД: объект БД)
-    в нем хранятсяс все БД, которые были загруженны в программу
-    при сохранении будет сохраняться именно базы из этого словаря
+    Словарь со значениями (Имя БД: объект БД).
+    В нем хранятся все базы данных, которые были загруженны в программу.
+    При сохранении будет сохраняться именно базы из словаря.
 """
-work_list = {}
 
-"""
-    current_base - текущий dataframe, с которым работает пользователь
-    current_base_name - ее имя
-    current_base_list_id - ее id в ListBox
-"""
-current_base = None
-current_base_name = ''
-current_base_list_id = None
+current_base: DataFrame = None
+"""Текущий dataframe, с которым работает пользователь."""
 
-"""
-    table4base - объект TreeView, который отображается в программе
-    в TreeView хранятся все данные из БД
-"""
-table4base = None
+current_base_name: str = None
+"""Имя текущего dataframe, с которым работает пользователь."""
 
+current_base_list_id: int = None
+"""id текущего dataframe в ListBox, с которым работает пользователь."""
+
+table4base: Treeview = None
 """
-    base_list - объект Listbox, который отображается в программе
+    Объект TreeView, данные из которого отображаются в workspace.
+    В TreeView хранятся все данные из выбранной базы данных.
+"""
+
+base_list: Listbox = None
+"""
+    Объект Listbox, который отображается в программе.
     в нем хранятся все имена загруженных баз
     с помощью него осуществляется выбор пользователем
 """
-base_list = None
+
+
+def correct_base_values(base: DataFrame) -> DataFrame:
+    """
+    Автор:
+    Цель:   при добавлении в таблицу измененных пользователем данных могут возникнуть nan значения,
+            их мы меняем на пустые строки или на 0, так же nan меняет типы столбцов на другой,
+            здесь мы обратно приводим тип столбцов к нужному
+    Вход:  нет
+    Выход:  нет
+    """
+    base[['Year', 'Month', 'Day']] = base[['Year', 'Month', 'Day']].replace(np.nan, 0)
+    base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = base[
+        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
+    base = base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32',
+                        'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
+                        'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
+                        'DAMAGE_MILLIONS_DOLLARS': 'float64'})
+    return base
+
+
+def update_workspace():
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
+
+    global current_base
+    global columns
+    assert current_base is not None
+    for i in range(len(current_base.index)):
+        insert = current_base.iloc[i, :]
+        for j in columns:
+            table4base.set(i, column=j, value=insert[j])
+
+
+def clear_workspace():
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
+
+    global current_base
+    global columns
+    assert current_base is not None
+    table4base.delete(*list(range(len(current_base.index))))
+
+def update_list():
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
+    global current_base
+    global current_base_list_id
+    base_list.delete(current_base_list_id)
+    base_list.insert(current_base_list_id, current_base_name)

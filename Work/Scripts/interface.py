@@ -1,35 +1,38 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mb
-
-import globals as glob
-import numpy as np
 import pandas as pd
+from Work.Scripts import globals as glob
 
 from Work.Library import error_edit_windows as err
 
 # набор глобальных переменных
-sort = True  # показывает, как отсортирована таблица и dataframe
+__sort = True  # показывает, как отсортирована таблица и dataframe
 load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
+create_event = None
 # иконки
 save_icon = None
 add_icon = None
 edit_icon = None
 load_icon = None
 
+
 # events ---------------------------------------------------------------------------------------
 
-"""
-Автор:  
-Цель:   обработчик события кнопки изменения поля таблицы
-Вход:   корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы            
-Выход:  нет
-"""
 
-
-def edit_event(win, title_columns):
+def edit_event(win: tk.Tk) -> str:
+    """
+    Автор:
+    Цель:   обработчик события кнопки изменения поля таблицы
+    Вход:   корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы
+    Выход:  нет
+    """
     # открыта ли база?
     if not is_db_open():
+        return "break"
+    # пуста ли база?
+    if glob.current_base.empty:
+        err.error("База пуста")
         return "break"
     # получаем изменяемую строчку
     index = glob.table4base.index(glob.table4base.selection())
@@ -42,7 +45,7 @@ def edit_event(win, title_columns):
     frame4entries = tk.Frame(edit_win)
     frame4button = tk.Frame(edit_win)
     list4changes = {}
-    for i in title_columns:
+    for i in glob.columns:
         # все значения будут строкой, при сохранении в dataframe мы осуществим приведение чисел к числовому типу
         text = tk.StringVar()
         # если атрибут nan или 0, то вместо него отображаем пустую строчку
@@ -65,110 +68,91 @@ def edit_event(win, title_columns):
     frame4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
 
 
-"""
-Автор: 
-Цель:  
-Вход:   
-Выход:  
-"""
-
-
-def add_event(*args):
-    # todo: сделать добавление новой базы
-    pass
-
-
-"""
-Автор: 
-Цель:   
-Вход:   
-Выход:   
-"""
-
-
 def save_event(*args):
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
     # открыта ли база?
     if not is_db_open():
         return "break"
     if not is_saved():
         glob.current_base_name = glob.current_base_name.replace('*', '')
         glob.work_list[glob.current_base_name] = glob.current_base
-        update_list()
+        glob.update_list()
     # todo: сохранение в файл БД из словаря
 
 
-"""
-Автор: 
-Цель:   обработчик события кнопки сохранения в окне редактирования поля таблицы 
-Вход:   объект окна редактирования tkinter для его закрытия после нажатия кнопки сохранить, 
-        текущий индекс выбранного поля таблицы, 
-        новые значения для записи в поле таблицы. 
-Выход:  нет 
-"""
-
-
-def make_changes_event(win, index, new_values):
+def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
+    """
+    Автор:
+    Цель:   обработчик события кнопки сохранения в окне редактирования поля таблицы
+    Вход:   объект окна редактирования tkinter для его закрытия после нажатия кнопки сохранить,
+            текущий индекс выбранного поля таблицы,
+            новые значения для записи в поле таблицы.
+    Выход:  нет
+    """
     # приводим все числа к числовому типу
     glob.current_base.iloc[index, :] = [pd.to_numeric(x.get(), errors="ignore") for x in new_values.values()]
     # заменяем пустые строчки на nan и приводим тип всех столбцов таблицы к нужному типу
-    cast_datatypes()
+    glob.current_base = glob.correct_base_values(glob.current_base)
     glob.work_list[glob.current_base_name] = glob.current_base
     item = glob.table4base.selection()
     for key, value in new_values.items():
         glob.table4base.set(item, column=key, value=value.get())
     glob.current_base_name += "*"
-    update_list()
+    glob.update_list()
     win.destroy()
-    update_workspace()
+    glob.update_workspace()
 
 
-"""
-Автор: 
-Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
-Вход:   объект главного окна,
-        ключ (имя) выбранной базы,
-        словарь текущий загруженных баз данных (имя: база данных),
-        список активных столбцов таблицы.
-Выход:  нет 
-"""
-
-
-def open_base(win, selected, dict4db, title_columns):
+def open_base(win: tk.Tk, selected: int):
+    """
+    Автор:
+    Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
+    Вход:   объект главного окна,
+            ключ (имя) выбранной базы,
+            словарь текущий загруженных баз данных (имя: база данных),
+            список активных столбцов таблицы.
+    Выход:  нет
+    """
     glob.current_base_list_id = selected
-    glob.current_base, glob.current_base_name = dict4db.get(
+    glob.current_base, glob.current_base_name = glob.work_list.get(
         glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
-    work_frame = create_workspace(win, glob.current_base, title_columns)
+    work_frame = create_workspace(win)
     # work_frame.grid(row=1, column=1, rowspan=2, sticky="NSW")
     win.forget(1)
     win.add(work_frame, weight=10000)
 
 
 def workspace_onclick_event(event):
-    global sort
-    sort = not sort
+    global __sort
+    __sort = not __sort
     tree = glob.table4base
     if tree.identify_region(event.x, event.y) == "heading":
         column = tree.identify_column(event.x)
         index4column = int(column[1:])
-        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort,
+        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=__sort,
                                                           ignore_index=True)
-        update_workspace()
+        glob.update_workspace()
 
 
 #  ---------------------------------------------------------------------------------------
 # frames =======================================================================================
 
-"""
-Автор: 
-Цель:   создание панели инструментов в главном окне
-Вход:   объект главного окна, 
-        список активных столбцов таблицы.
-Выход:  нет 
-"""
 
-
-def create_toolbar(win, title_columns):
+def create_toolbar(win):
+    """
+    Автор:
+    Цель:   создание панели инструментов в главном окне
+    Вход:   объект главного окна,
+            список активных столбцов таблицы.
+    Выход:  нет
+    """
     global load_event
+    global create_event
     tools_frame = tk.Frame(win, bg="white")
     add_button = tk.Button(tools_frame, image=add_icon, relief="groove", bd=0, bg="white")
     save_button = tk.Button(tools_frame, image=save_icon, relief="groove", bd=0, bg="white")
@@ -176,11 +160,11 @@ def create_toolbar(win, title_columns):
     load_button = tk.Button(tools_frame, image=load_icon, relief="groove", bd=0, bg="white")
     add_field_button = tk.Button(tools_frame, relief="raised", text="Добавить поле", bd=2, bg="white")
 
-    add_button.bind("<Button-1>", add_event)
+    add_button.bind("<Button-1>", create_event)
     save_button.bind("<Button-1>", save_event)
-    edit_button.bind("<Button-1>", lambda *args: edit_event(win, title_columns))
+    edit_button.bind("<Button-1>", lambda *args: edit_event(win))
     load_button.bind("<Button-1>", load_event)
-    add_field_button.bind("<Button-1>", lambda *args: add_inf(win, title_columns))
+    add_field_button.bind("<Button-1>", lambda *args: add_inf(win))
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
@@ -190,39 +174,36 @@ def create_toolbar(win, title_columns):
     tools_frame.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
-"""
-Автор: 
-Цель:   создание виджета Listbox для выбора загруженных баз даннных
-Вход:   объект главного окна,
-        словарь для хранения текущих загруженных баз данных (имя: база данных),
-        список активных столбцов таблицы.
-Выход:  нет 
-"""
-
-
-def create_list4db(win, dict4db, title_columns):
+def create_list4db(win):
+    """
+    Автор:
+    Цель:   создание виджета Listbox для выбора загруженных баз даннных
+    Вход:   объект главного окна,
+            словарь для хранения текущих загруженных баз данных (имя: база данных),
+            список активных столбцов таблицы.
+    Выход:  нет
+    """
     list_frame = tk.LabelFrame(win, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
                                bg='white')
     lsb_base = tk.Listbox(list_frame, selectmode='browse')
-    for name, base in dict4db.items():
+    for name, base in glob.work_list.items():
         lsb_base.insert(tk.END, name)
     glob.base_list = lsb_base
     lsb_base.bind('<Double-Button-1>',
-                  lambda *args: open_base(win, lsb_base.curselection(), dict4db, title_columns))
+                  lambda *args: open_base(win, lsb_base.curselection()))
     lsb_base.pack(side="left", fill="both", expand=True)
     return list_frame
     # list_frame.grid(row=1, column=0, sticky="NSEW")
 
 
-"""
-Автор: 
-Цель:   создает меню на главном окне
-Вход:   объект главного окна.
-Выход:  нет 
-"""
+def create_menu(win: tk.Tk):
+    """
+    Автор:
+    Цель:   создает меню на главном окне
+    Вход:   объект главного окна.
+    Выход:  нет
+    """
 
-
-def create_menu(win):
     global load_event
     menubar = tk.Menu(win)
     file = tk.Menu(menubar, tearoff=0)
@@ -240,24 +221,23 @@ def create_menu(win):
     win.config(menu=menubar)
 
 
-"""
-    Автор: 
-    Цель:   создает рабочее пространство с таблицей 
-    Вход:   объект главного окна,
-            выбранная база,
-            активные столбцы.
-    Выход:  нет 
-"""
+def create_workspace(win):
+    """
+        Автор:
+        Цель:   создает рабочее пространство с таблицей
+        Вход:   объект главного окна,
+                выбранная база,
+                активные столбцы.
+        Выход:  нет
+    """
 
-
-def create_workspace(win, selected_base, title_columns):
     # создаем и заполняем нашу таблицу
-    title = title_columns
+    title = glob.columns
     frame = tk.LabelFrame(win, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
     tree = ttk.Treeview(frame, columns=title, height=30, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
-    for i in range(len(selected_base.index)):
-        insert = list(selected_base.iloc[i, :])
+    for i in range(len(glob.current_base.index)):
+        insert = list(glob.current_base.iloc[i, :])
         tree.insert('', 'end', iid=i, values=insert)
     # меняем ширину столбца для красоты
     for i in range(1, len(title) + 1):
@@ -270,7 +250,6 @@ def create_workspace(win, selected_base, title_columns):
     tree.configure(xscrollcommand=hsb.set)
 
     # пакуем все в фрейм, а его по сетке в окно
-
     glob.table4base = tree
     hsb.pack(side='bottom', fill='both')
     vsb.pack(side='right', fill='both')
@@ -279,38 +258,6 @@ def create_workspace(win, selected_base, title_columns):
 
 
 #  =======================================================================================
-# updates =======================================================================================
-
-"""
-Автор: 
-Цель:   
-Вход:   
-Выход:   
-"""
-
-
-def update_list():
-    glob.base_list.delete(glob.current_base_list_id)
-    glob.base_list.insert(glob.current_base_list_id, glob.current_base_name)
-
-
-"""
-Автор: 
-Цель:   
-Вход:   
-Выход:   
-"""
-
-
-def update_workspace():
-    for i in range(len(glob.current_base.index)):
-        insert = glob.current_base.iloc[i, :]
-        for j in glob.columns:
-            glob.table4base.set(i, column=j, value=insert[j])
-
-
-# =======================================================================================
-
 
 def is_db_open():
     if glob.current_base is None:
@@ -319,50 +266,28 @@ def is_db_open():
     return True
 
 
-"""
-Автор: 
-Цель:   
-Вход:   
-Выход:   
-"""
-
-
 def is_saved():
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
+
     flag = True
     if "*" in glob.current_base_name:
         flag = False
     return flag
 
 
-"""
-Автор: 
-Цель:   при добавлении в таблицу измененных пользователем данных могут возникнуть nan значения, 
-        их мы меняем на пустые строки или на 0, так же nan меняет типы столбцов на другой, 
-        здесь мы обратно приводим тип столбцов к нужному 
-Вход:  нет
-Выход:  нет 
-"""
+def add_inf(win: tk.Tk):
+    """
+        Автор:Подкопаева П.
+        Цель: Добавление новых элементов в базу данных (окно)
+        Вход: Нет
+        Выход: Нет
+    """
 
-
-def cast_datatypes():
-    glob.current_base[['Year', 'Month', 'Day']] = glob.current_base[['Year', 'Month', 'Day']].replace(np.nan, 0)
-    glob.current_base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = glob.current_base[
-        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
-    glob.current_base = glob.current_base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32',
-                                                  'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
-                                                  'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
-                                                  'DAMAGE_MILLIONS_DOLLARS': 'float64'})
-
-
-"""
-    Автор:Подкопаева П.
-    Цель: Добавление новых элементов в базу данных (окно)
-    Вход: Нет
-    Выход: Нет
-"""
-
-
-def add_inf(win, title_columns):
     if not is_db_open():
         return "break"
     root = tk.Toplevel(win)
@@ -485,11 +410,11 @@ def add_inf(win, title_columns):
                    'Agent': cmb_agent, 'DEATHS': Deaths, 'INJURIES': Injured, 'MISSING': Lost,
                    'DAMAGE_MILLIONS_DOLLARS': Damage, 'TSU': TSU, 'EQ': EQ}
     message_button = tk.Button(root, text="Ввести",
-                               command=lambda *args: accept(root, list4values, title_columns))
+                               command=lambda *args: accept(root, list4values))
     message_button.grid(row=19, column=3, padx=5, pady=5, sticky="e")
 
 
-def accept(root, list4values, title_columns):
+def accept(root, list4values):
     flag = True
     if (list4values['Day'].get() > 29) and (list4values['Month'].get() == 2):
         flag = False
@@ -506,7 +431,7 @@ def accept(root, list4values, title_columns):
             {k: pd.to_numeric(v.get(), errors="ignore") for k, v in list4values.items()}, ignore_index=True)
         glob.work_list[glob.current_base_name] = glob.current_base
         new_item = glob.table4base.insert('', 'end', iid=len(glob.current_base.index) - 1)
-        for i in title_columns:
+        for i in glob.columns:
             glob.table4base.set(new_item, column=i, value=list4values[i].get())
         mb.showinfo("Сообщение", "Занесено в базу")
         root.destroy()
