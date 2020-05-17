@@ -1,9 +1,12 @@
-from Work.Scripts import constants
 from tkinter import Listbox
+from tkinter import Tk
+from tkinter.ttk import PanedWindow
 from tkinter.ttk import Treeview
-from pandas import DataFrame
-import numpy as np
 
+import numpy as np
+from pandas import DataFrame
+
+from Work.Scripts import constants
 
 columns: list = constants.origin_columns
 """
@@ -40,6 +43,44 @@ base_list: Listbox = None
     с помощью него осуществляется выбор пользователем
 """
 
+root: Tk = None
+pane: PanedWindow = None
+tree_rows_number: int = 40
+
+
+def is_saved() -> bool:
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
+    global current_base_name
+    if "*" in current_base_name:
+        return False
+    return True
+
+
+def delete_current_base():
+    global work_list, current_base_name, current_base_list_id, current_base
+    del work_list[current_base_name]
+    current_base = None
+    current_base_name = None
+    base_list.delete(current_base_list_id)
+    current_base_list_id = None
+
+
+def mark_changes():
+    global current_base_name
+    if is_saved():
+        current_base_name += "*"
+
+
+def unmark_changes():
+    global current_base_name
+    if not is_saved():
+        current_base_name = current_base_name.replace('*', '')
+
 
 def correct_base_values(base: DataFrame) -> DataFrame:
     """
@@ -67,7 +108,6 @@ def update_workspace():
     Вход:
     Выход:
     """
-
     global current_base
     global columns
     assert current_base is not None
@@ -89,6 +129,7 @@ def clear_workspace():
     global columns
     assert current_base is not None
     table4base.delete(*list(range(len(current_base.index))))
+
 
 def update_list():
     """

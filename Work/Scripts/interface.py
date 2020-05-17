@@ -1,26 +1,49 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mb
+
 import pandas as pd
-from Work.Scripts import globals as glob
 
 from Work.Library import error_edit_windows as err
+from Work.Scripts import globals as glob
 
 # набор глобальных переменных
-__sort = True  # показывает, как отсортирована таблица и dataframe
+sort = True  # показывает, как отсортирована таблица и dataframe
 load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
+save_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
+close_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
 create_event = None
 # иконки
 save_icon = None
 add_icon = None
 edit_icon = None
 load_icon = None
+close_icon = None
+add_field_icon = None
+del_field_icon = None
 
 
 # events ---------------------------------------------------------------------------------------
 
+def remove_inf():
+    # открыта ли база?
+    if not is_db_open():
+        return "break"
+    # пуста ли база?
+    if glob.current_base.empty:
+        err.error("База пуста")
+        return "break"
+    ans = err.yes_no("Вы точно хотите удалить строчку?")
+    if ans:
+        # todo: можно ли оптимизировать?
+        index = glob.table4base.index(glob.table4base.selection())
+        glob.current_base = glob.current_base.drop(index=index)
+        glob.mark_changes()
+        glob.update_workspace()
+        glob.update_list()
 
-def edit_event(win: tk.Tk) -> str:
+
+def edit_event(win: tk.Tk):
     """
     Автор:
     Цель:   обработчик события кнопки изменения поля таблицы
@@ -39,6 +62,7 @@ def edit_event(win: tk.Tk) -> str:
     curr_item = glob.current_base.iloc[index, :]
     # создаем дочернее окно
     edit_win = tk.Toplevel(win)
+    edit_win.resizable(0, 0)
     edit_win.title("Изменения данных поля таблицы")
     # распологаем все необходимые элементы в этих фреймах
     frame4labels = tk.Frame(edit_win)
@@ -68,23 +92,6 @@ def edit_event(win: tk.Tk) -> str:
     frame4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
 
 
-def save_event(*args):
-    """
-    Автор:
-    Цель:
-    Вход:
-    Выход:
-    """
-    # открыта ли база?
-    if not is_db_open():
-        return "break"
-    if not is_saved():
-        glob.current_base_name = glob.current_base_name.replace('*', '')
-        glob.work_list[glob.current_base_name] = glob.current_base
-        glob.update_list()
-    # todo: сохранение в файл БД из словаря
-
-
 def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     """
     Автор:
@@ -102,10 +109,10 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     item = glob.table4base.selection()
     for key, value in new_values.items():
         glob.table4base.set(item, column=key, value=value.get())
-    glob.current_base_name += "*"
+    glob.mark_changes()
     glob.update_list()
-    win.destroy()
     glob.update_workspace()
+    win.destroy()
 
 
 def open_base(win: tk.Tk, selected: int):
@@ -122,28 +129,38 @@ def open_base(win: tk.Tk, selected: int):
     glob.current_base, glob.current_base_name = glob.work_list.get(
         glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
     work_frame = create_workspace(win)
-    # work_frame.grid(row=1, column=1, rowspan=2, sticky="NSW")
     win.forget(1)
     win.add(work_frame, weight=10000)
 
 
-def workspace_onclick_event(event):
-    global __sort
-    __sort = not __sort
+def workspace_onclick_event(event, mode: str):
+    global sort
+    sort = not sort
     tree = glob.table4base
-    if tree.identify_region(event.x, event.y) == "heading":
-        column = tree.identify_column(event.x)
-        index4column = int(column[1:])
-        glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=__sort,
-                                                          ignore_index=True)
-        glob.update_workspace()
+    if mode == "Single":
+        if tree.identify_region(event.x, event.y) == "heading":
+            column = tree.identify_column(event.x)
+            index4column = int(column[1:])
+            glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort,
+                                                              ignore_index=True)
+            glob.update_workspace()
+    elif mode == "Double":
+        edit_event(glob.root)
+
+
+def show_invitation() -> tk.Frame:
+    # label приглашение к выбору
+    pls_select_frame = tk.Frame(glob.pane, bg="white")
+    lbl_select_pls = tk.Label(pls_select_frame, text="Пожалуйста, выберете базу данных", bg="white")
+    lbl_select_pls.pack(expand=True, fill="both")
+    return pls_select_frame
 
 
 #  ---------------------------------------------------------------------------------------
 # frames =======================================================================================
 
 
-def create_toolbar(win):
+def create_toolbar():
     """
     Автор:
     Цель:   создание панели инструментов в главном окне
@@ -153,24 +170,31 @@ def create_toolbar(win):
     """
     global load_event
     global create_event
-    tools_frame = tk.Frame(win, bg="white")
+    tools_frame = tk.Frame(glob.root, bg="white")
     add_button = tk.Button(tools_frame, image=add_icon, relief="groove", bd=0, bg="white")
     save_button = tk.Button(tools_frame, image=save_icon, relief="groove", bd=0, bg="white")
     edit_button = tk.Button(tools_frame, image=edit_icon, relief="groove", bd=0, bg="white")
     load_button = tk.Button(tools_frame, image=load_icon, relief="groove", bd=0, bg="white")
-    add_field_button = tk.Button(tools_frame, relief="raised", text="Добавить поле", bd=2, bg="white")
+    add_field_button = tk.Button(tools_frame, image=add_field_icon, relief="groove", bd=0, bg="white")
+    del_field_button = tk.Button(tools_frame, image=del_field_icon, relief="groove", bd=0, bg="white")
+    close_button = tk.Button(tools_frame, image=close_icon, relief="groove", bd=0, bg="white")
 
     add_button.bind("<Button-1>", create_event)
     save_button.bind("<Button-1>", save_event)
-    edit_button.bind("<Button-1>", lambda *args: edit_event(win))
+    edit_button.bind("<Button-1>", lambda *args: edit_event(glob.root))
     load_button.bind("<Button-1>", load_event)
-    add_field_button.bind("<Button-1>", lambda *args: add_inf(win))
+    add_field_button.bind("<Button-1>", lambda *args: add_inf(glob.root))
+    del_field_button.bind("<Button-1>", lambda *args: remove_inf())
+    close_button.bind("<Button-1>", close_event)
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
     save_button.grid(row=0, column=2, padx=2, pady=2, sticky="NSEW")
     edit_button.grid(row=0, column=3, padx=2, pady=2, sticky="NSEW")
     add_field_button.grid(row=0, column=4, padx=2, pady=2, sticky="NSEW")
+    del_field_button.grid(row=0, column=5, padx=2, pady=2, sticky="NSEW")
+    close_button.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
+    tools_frame.grid_rowconfigure(0, minsize=20)
     tools_frame.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
@@ -234,7 +258,7 @@ def create_workspace(win):
     # создаем и заполняем нашу таблицу
     title = glob.columns
     frame = tk.LabelFrame(win, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
-    tree = ttk.Treeview(frame, columns=title, height=30, show="headings", selectmode='browse')
+    tree = ttk.Treeview(frame, columns=title, height=glob.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(glob.current_base.index)):
         insert = list(glob.current_base.iloc[i, :])
@@ -245,7 +269,8 @@ def create_workspace(win):
     # скроллбары для нее
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
     hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
-    tree.bind("<Button-1>", lambda event: workspace_onclick_event(event))
+    tree.bind("<Button-1>", lambda event, mode="Single": workspace_onclick_event(event, mode))
+    tree.bind("<Double-Button-1>", lambda event, mode="Double": workspace_onclick_event(event, mode))
     tree.configure(yscrollcommand=vsb.set)
     tree.configure(xscrollcommand=hsb.set)
 
@@ -254,6 +279,7 @@ def create_workspace(win):
     hsb.pack(side='bottom', fill='both')
     vsb.pack(side='right', fill='both')
     tree.pack(side='top')
+
     return frame
 
 
@@ -264,20 +290,6 @@ def is_db_open():
         err.error("База не выбранна!")
         return False
     return True
-
-
-def is_saved():
-    """
-    Автор:
-    Цель:
-    Вход:
-    Выход:
-    """
-
-    flag = True
-    if "*" in glob.current_base_name:
-        flag = False
-    return flag
 
 
 def add_inf(win: tk.Tk):
@@ -434,6 +446,8 @@ def accept(root, list4values):
         for i in glob.columns:
             glob.table4base.set(new_item, column=i, value=list4values[i].get())
         mb.showinfo("Сообщение", "Занесено в базу")
+        glob.mark_changes()
+        glob.update_list()
         root.destroy()
     else:
         err.error("Данные введены некорректно, повторите попытку")
