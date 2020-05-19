@@ -17,6 +17,7 @@ def setup() -> tk.Tk:
     """
     root = tk.Tk()
     glob.root = root
+
     ui.save_icon = tk.PhotoImage(file="../Graphics/save_icon.gif")
     ui.add_icon = tk.PhotoImage(file="../Graphics/add_icon.gif")
     ui.edit_icon = tk.PhotoImage(file="../Graphics/edit_icon.gif")
@@ -66,15 +67,25 @@ def load_event(*args):
 
 
 def create_event(*args):
+    """
+        Автор:
+        Цель:   создание новой базы, если база уже существует в рабочей директории
+                windows обеспечивает выбор, перезаписывать файл или нет.
+        Вход: Нет
+        Выход: объект главного окна
+    """
     new_base_path = filedialog.asksaveasfilename(initialdir="../Data/",
                                                  filetypes=(("Database files", "*.csv"), ("All files", "*.*")))
     new_base_name = hand_base.create_base(new_base_path)
-    if new_base_name not in glob.base_list.get(0, tk.END):
-        glob.base_list.insert(tk.END, new_base_name)
+    # если имя открытой базы совпадает с именем новой базы
     if glob.current_base_name == new_base_name:
         glob.clear_workspace()
         glob.current_base = glob.work_list[new_base_name]
-
+    # если новой базы нет в листе - добавляем
+    elif new_base_name not in glob.base_list.get(0, tk.END):
+        glob.base_list.insert(tk.END, new_base_name)
+    # если имя открытой базы уже есть в листе, то пользователь все равно выбрал перезаписывать файл
+    # так что нам не нужно расматривать этот вариант и база уже перезаписалась на новую в work_list
     return "break"
 
 

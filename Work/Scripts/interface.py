@@ -1,4 +1,5 @@
 import tkinter as tk
+from Work.Scripts import constants
 import tkinter.ttk as ttk
 from tkinter import messagebox as mb
 
@@ -8,7 +9,7 @@ from Work.Library import error_edit_windows as err
 from Work.Scripts import globals as glob
 
 # набор глобальных переменных
-sort = True  # показывает, как отсортирована таблица и dataframe
+sort = True  # показывает, как отсортирована таблица и dataframe4check
 load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
 save_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
 close_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
@@ -65,12 +66,12 @@ def edit_event(win: tk.Tk):
     edit_win.resizable(0, 0)
     edit_win.title("Изменения данных поля таблицы")
     # распологаем все необходимые элементы в этих фреймах
-    frame4labels = tk.Frame(edit_win)
-    frame4entries = tk.Frame(edit_win)
-    frame4button = tk.Frame(edit_win)
+    frame4check4labels = tk.Frame(edit_win)
+    frame4check4entries = tk.Frame(edit_win)
+    frame4check4button = tk.Frame(edit_win)
     list4changes = {}
-    for i in glob.columns:
-        # все значения будут строкой, при сохранении в dataframe мы осуществим приведение чисел к числовому типу
+    for i in constants.origin_columns:
+        # все значения будут строкой, при сохранении в dataframe4check мы осуществим приведение чисел к числовому типу
         text = tk.StringVar()
         # если атрибут nan или 0, то вместо него отображаем пустую строчку
         if pd.isna(curr_item[i]) or (i in ['Year', 'Month', 'Day'] and curr_item[i] == 0):
@@ -78,18 +79,23 @@ def edit_event(win: tk.Tk):
         else:
             text.set(curr_item[i])
         list4changes[i] = text
-        tk.Label(frame4labels, text=i + ":", anchor="e").pack(side="top", fill="x", expand=True, pady=5)
-        tk.Entry(frame4entries, textvariable=text).pack(side="top", fill="x", expand=True, pady=5)
-    save_changes_button = tk.Button(frame4button, text="Сохранить")
+        label = tk.Label(frame4check4labels, text=i + ":", anchor="e")
+        entry = tk.Entry(frame4check4entries, textvariable=text)
+        if i not in glob.columns:
+            label.configure(state=tk.DISABLED)
+            entry.configure(state='readonly')
+        entry.pack(side="top", fill="x", expand=True, pady=5)
+        label.pack(side="top", fill="x", expand=True, pady=5)
+    save_changes_button = tk.Button(frame4check4button, text="Сохранить")
     save_changes_button.pack(expand=False)
     save_changes_button.bind("<Button-1>", lambda *args: make_changes_event(edit_win, index, list4changes))
     edit_win.rowconfigure(0, pad=5)
     edit_win.rowconfigure(1, pad=5)
     edit_win.columnconfigure(0, pad=5)
     edit_win.columnconfigure(1, pad=5)
-    frame4labels.grid(row=0, column=0, sticky="NSW")
-    frame4entries.grid(row=0, column=1, sticky="NSW")
-    frame4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
+    frame4check4labels.grid(row=0, column=0, sticky="NSW")
+    frame4check4entries.grid(row=0, column=1, sticky="NSW")
+    frame4check4button.grid(row=1, column=0, columnspan=2, sticky="NSEW")
 
 
 def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
@@ -115,7 +121,65 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     win.destroy()
 
 
-def open_base(win: tk.Tk, selected: int):
+def uncheck_all_event(*args):
+    [x.set(0) for x in glob.columns_selection.values()]
+
+
+def check_all_event(*args):
+    [x.set(1) for x in glob.columns_selection.values()]
+
+
+def apply_column_selection(win: tk.Toplevel):
+    flag = False
+    for x in glob.columns_selection.values():
+        if x.get() == 1:
+            flag = True
+            break
+    if flag:
+        glob.columns = [x for x in glob.columns_selection.keys() if glob.columns_selection[x].get() == 1]
+        open_base(glob.pane, glob.current_base_list_id)
+        win.destroy()
+    else:
+        err.error("Не выбран ни один столбец")
+        return "break"
+
+
+def select_columns_event():
+    # открыта ли база?
+    if not is_db_open():
+        return "break"
+    win = tk.Toplevel(glob.root)
+    win.title("Выберете стобцы")
+    glob.columns_selection = {k: v
+                              for k in constants.origin_columns
+                              for v in [tk.IntVar() for x in range(len(glob.constants.origin_columns))]
+                              }
+    frame4check = tk.Frame(win)
+    frame4button = tk.Frame(win)
+    s = ttk.Style()
+    s.configure('Selection.TCheckbutton', anchor="w")
+    i = 0
+    for text, value in glob.columns_selection.items():
+        ttk.Checkbutton(frame4check, style="Selection.TCheckbutton", text=text, variable=value).grid(row=i, column=1,
+                                                                                                     sticky='NSEW')
+        value.set(1) if text in glob.columns else value.set(0)
+        i += 1
+    apply_button = tk.Button(frame4button, text="Применить")
+    uncheck_all_button = tk.Button(frame4button, text="Снять выбор")
+    check_all_button = tk.Button(frame4button, text="Выбрать все")
+
+    apply_button.bind("<Button-1>", lambda *args: apply_column_selection(win))
+    uncheck_all_button.bind("<Button-1>", uncheck_all_event)
+    check_all_button.bind("<Button-1>", check_all_event)
+
+    uncheck_all_button.grid(row=0, column=0, sticky='NSE', padx=5, pady=2)
+    check_all_button.grid(row=0, column=1, sticky='NSW', padx=5, pady=2)
+    apply_button.grid(row=1, column=0, columnspan=2, sticky='NS', pady=2)
+    frame4check.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+    frame4button.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+
+
+def open_base(win: ttk.Panedwindow, selected: int):
     """
     Автор:
     Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
@@ -128,9 +192,9 @@ def open_base(win: tk.Tk, selected: int):
     glob.current_base_list_id = selected
     glob.current_base, glob.current_base_name = glob.work_list.get(
         glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
-    work_frame = create_workspace(win)
+    work_frame4check = create_workspace(win)
     win.forget(1)
-    win.add(work_frame, weight=10000)
+    win.add(work_frame4check, weight=10000)
 
 
 def workspace_onclick_event(event, mode: str):
@@ -150,14 +214,14 @@ def workspace_onclick_event(event, mode: str):
 
 def show_invitation() -> tk.Frame:
     # label приглашение к выбору
-    pls_select_frame = tk.Frame(glob.pane, bg="white")
-    lbl_select_pls = tk.Label(pls_select_frame, text="Пожалуйста, выберете базу данных", bg="white")
+    pls_select_frame4check = tk.Frame(glob.pane, bg="white")
+    lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберете базу данных", bg="white")
     lbl_select_pls.pack(expand=True, fill="both")
-    return pls_select_frame
+    return pls_select_frame4check
 
 
 #  ---------------------------------------------------------------------------------------
-# frames =======================================================================================
+# frame4checks =======================================================================================
 
 
 def create_toolbar():
@@ -170,14 +234,15 @@ def create_toolbar():
     """
     global load_event
     global create_event
-    tools_frame = tk.Frame(glob.root, bg="white")
-    add_button = tk.Button(tools_frame, image=add_icon, relief="groove", bd=0, bg="white")
-    save_button = tk.Button(tools_frame, image=save_icon, relief="groove", bd=0, bg="white")
-    edit_button = tk.Button(tools_frame, image=edit_icon, relief="groove", bd=0, bg="white")
-    load_button = tk.Button(tools_frame, image=load_icon, relief="groove", bd=0, bg="white")
-    add_field_button = tk.Button(tools_frame, image=add_field_icon, relief="groove", bd=0, bg="white")
-    del_field_button = tk.Button(tools_frame, image=del_field_icon, relief="groove", bd=0, bg="white")
-    close_button = tk.Button(tools_frame, image=close_icon, relief="groove", bd=0, bg="white")
+    tools_frame4check = tk.Frame(glob.root, bg="white")
+    add_button = tk.Button(tools_frame4check, image=add_icon, relief="groove", bd=0, bg="white")
+    save_button = tk.Button(tools_frame4check, image=save_icon, relief="groove", bd=0, bg="white")
+    edit_button = tk.Button(tools_frame4check, image=edit_icon, relief="groove", bd=0, bg="white")
+    load_button = tk.Button(tools_frame4check, image=load_icon, relief="groove", bd=0, bg="white")
+    add_field_button = tk.Button(tools_frame4check, image=add_field_icon, relief="groove", bd=0, bg="white")
+    del_field_button = tk.Button(tools_frame4check, image=del_field_icon, relief="groove", bd=0, bg="white")
+    select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
+    close_button = tk.Button(tools_frame4check, image=close_icon, relief="groove", bd=0, bg="white")
 
     add_button.bind("<Button-1>", create_event)
     save_button.bind("<Button-1>", save_event)
@@ -185,6 +250,7 @@ def create_toolbar():
     load_button.bind("<Button-1>", load_event)
     add_field_button.bind("<Button-1>", lambda *args: add_inf(glob.root))
     del_field_button.bind("<Button-1>", lambda *args: remove_inf())
+    select_columns.bind("<Button-1>", lambda *args: select_columns_event())
     close_button.bind("<Button-1>", close_event)
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
@@ -193,9 +259,10 @@ def create_toolbar():
     edit_button.grid(row=0, column=3, padx=2, pady=2, sticky="NSEW")
     add_field_button.grid(row=0, column=4, padx=2, pady=2, sticky="NSEW")
     del_field_button.grid(row=0, column=5, padx=2, pady=2, sticky="NSEW")
-    close_button.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
-    tools_frame.grid_rowconfigure(0, minsize=20)
-    tools_frame.grid(row=0, column=0, columnspan=12, sticky="NSEW")
+    select_columns.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
+    close_button.grid(row=0, column=7, padx=2, pady=2, sticky="NSEW")
+    tools_frame4check.grid_rowconfigure(0, minsize=20)
+    tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
 def create_list4db(win):
@@ -207,17 +274,17 @@ def create_list4db(win):
             список активных столбцов таблицы.
     Выход:  нет
     """
-    list_frame = tk.LabelFrame(win, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
-                               bg='white')
-    lsb_base = tk.Listbox(list_frame, selectmode='browse')
+    list_frame4check = tk.LabelFrame(win, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
+                                     bg='white')
+    lsb_base = tk.Listbox(list_frame4check, selectmode='browse')
     for name, base in glob.work_list.items():
         lsb_base.insert(tk.END, name)
     glob.base_list = lsb_base
     lsb_base.bind('<Double-Button-1>',
                   lambda *args: open_base(win, lsb_base.curselection()))
     lsb_base.pack(side="left", fill="both", expand=True)
-    return list_frame
-    # list_frame.grid(row=1, column=0, sticky="NSEW")
+    return list_frame4check
+    # list_frame4check.grid(row=1, column=0, sticky="NSEW")
 
 
 def create_menu(win: tk.Tk):
