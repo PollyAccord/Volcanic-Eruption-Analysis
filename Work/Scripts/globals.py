@@ -43,6 +43,8 @@ base_list: Listbox = None
     с помощью него осуществляется выбор пользователем
 """
 
+columns_selection: dict = None
+
 root: Tk = None
 pane: PanedWindow = None
 tree_rows_number: int = 40
