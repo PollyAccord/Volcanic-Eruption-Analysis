@@ -12,7 +12,6 @@ from Work.Scripts import globals as glob
 sort = True  # показывает, как отсортирована таблица и dataframe4check
 load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
 save_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
-close_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
 create_event = None
 # иконки
 save_icon = None
@@ -26,7 +25,34 @@ del_field_icon = None
 
 # events ---------------------------------------------------------------------------------------
 
+def close_event(pane: ttk.Panedwindow, save):
+    """
+        Автор:
+        Цель:
+        Вход:
+        Выход:
+    """
+    # открыта ли база?
+    if not is_db_open():
+        return "break"
+    # сохранена ли база?
+    if not glob.is_saved():
+        ans = err.yes_no("Сохранить изменения?")
+        if ans:
+            save()
+    glob.delete_current_base()
+    pane.forget(1)
+    pls_select_frame = show_invitation(pane)
+    pane.add(pls_select_frame, weight=9)
+
+
 def remove_inf():
+    """
+        Автор:
+        \nЦель: удаляет строку из таблицы
+        \nВход: корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы
+        \nВыход: нет
+    """
     # открыта ли база?
     if not is_db_open():
         return "break"
@@ -44,12 +70,12 @@ def remove_inf():
         glob.update_list()
 
 
-def edit_event(win: tk.Tk):
+def edit_event(root: tk.Tk):
     """
-    Автор:
-    Цель:   обработчик события кнопки изменения поля таблицы
-    Вход:   корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы
-    Выход:  нет
+        Автор:
+        Цель:   обработчик события кнопки изменения поля таблицы, открывает окно для изменения данных
+        Вход:   корневое окно tkinter для создания окна редактирования
+        Выход:  нет
     """
     # открыта ли база?
     if not is_db_open():
@@ -62,7 +88,7 @@ def edit_event(win: tk.Tk):
     index = glob.table4base.index(glob.table4base.selection())
     curr_item = glob.current_base.iloc[index, :]
     # создаем дочернее окно
-    edit_win = tk.Toplevel(win)
+    edit_win = tk.Toplevel(root)
     edit_win.resizable(0, 0)
     edit_win.title("Изменения данных поля таблицы")
     # распологаем все необходимые элементы в этих фреймах
@@ -129,7 +155,7 @@ def check_all_event(*args):
     [x.set(1) for x in glob.columns_selection.values()]
 
 
-def apply_column_selection(win: tk.Toplevel):
+def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow):
     flag = False
     for x in glob.columns_selection.values():
         if x.get() == 1:
@@ -137,18 +163,18 @@ def apply_column_selection(win: tk.Toplevel):
             break
     if flag:
         glob.columns = [x for x in glob.columns_selection.keys() if glob.columns_selection[x].get() == 1]
-        open_base(glob.pane, glob.current_base_list_id)
+        open_base(root, pane, glob.current_base_list_id)
         win.destroy()
     else:
         err.error("Не выбран ни один столбец")
         return "break"
 
 
-def select_columns_event():
+def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     # открыта ли база?
     if not is_db_open():
         return "break"
-    win = tk.Toplevel(glob.root)
+    win = tk.Toplevel(root)
     win.title("Выберете стобцы")
     glob.columns_selection = {k: v
                               for k in constants.origin_columns
@@ -168,7 +194,7 @@ def select_columns_event():
     uncheck_all_button = tk.Button(frame4button, text="Снять выбор")
     check_all_button = tk.Button(frame4button, text="Выбрать все")
 
-    apply_button.bind("<Button-1>", lambda *args: apply_column_selection(win))
+    apply_button.bind("<Button-1>", lambda *args: apply_column_selection(root, win, pane))
     uncheck_all_button.bind("<Button-1>", uncheck_all_event)
     check_all_button.bind("<Button-1>", check_all_event)
 
@@ -179,7 +205,7 @@ def select_columns_event():
     frame4button.pack(side="top", fill="both", expand=True, padx=10, pady=5)
 
 
-def open_base(win: ttk.Panedwindow, selected: int):
+def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
     """
     Автор:
     Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
@@ -192,12 +218,12 @@ def open_base(win: ttk.Panedwindow, selected: int):
     glob.current_base_list_id = selected
     glob.current_base, glob.current_base_name = glob.work_list.get(
         glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
-    work_frame4check = create_workspace(win)
-    win.forget(1)
-    win.add(work_frame4check, weight=10000)
+    work_frame4check = create_workspace(root, pane)
+    pane.forget(1)
+    pane.add(work_frame4check, weight=10000)
 
 
-def workspace_onclick_event(event, mode: str):
+def workspace_onclick_event(root, event, mode: str):
     global sort
     sort = not sort
     tree = glob.table4base
@@ -209,12 +235,12 @@ def workspace_onclick_event(event, mode: str):
                                                               ignore_index=True)
             glob.update_workspace()
     elif mode == "Double":
-        edit_event(glob.root)
+        edit_event(root)
 
 
-def show_invitation() -> tk.Frame:
+def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
     # label приглашение к выбору
-    pls_select_frame4check = tk.Frame(glob.pane, bg="white")
+    pls_select_frame4check = tk.Frame(pane, bg="white")
     lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберете базу данных", bg="white")
     lbl_select_pls.pack(expand=True, fill="both")
     return pls_select_frame4check
@@ -224,7 +250,7 @@ def show_invitation() -> tk.Frame:
 # frame4checks =======================================================================================
 
 
-def create_toolbar():
+def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow):
     """
     Автор:
     Цель:   создание панели инструментов в главном окне
@@ -234,7 +260,8 @@ def create_toolbar():
     """
     global load_event
     global create_event
-    tools_frame4check = tk.Frame(glob.root, bg="white")
+    global save_event
+    tools_frame4check = tk.Frame(root, bg="white")
     add_button = tk.Button(tools_frame4check, image=add_icon, relief="groove", bd=0, bg="white")
     save_button = tk.Button(tools_frame4check, image=save_icon, relief="groove", bd=0, bg="white")
     edit_button = tk.Button(tools_frame4check, image=edit_icon, relief="groove", bd=0, bg="white")
@@ -246,12 +273,12 @@ def create_toolbar():
 
     add_button.bind("<Button-1>", create_event)
     save_button.bind("<Button-1>", save_event)
-    edit_button.bind("<Button-1>", lambda *args: edit_event(glob.root))
+    edit_button.bind("<Button-1>", lambda *args: edit_event(root))
     load_button.bind("<Button-1>", load_event)
-    add_field_button.bind("<Button-1>", lambda *args: add_inf(glob.root))
+    add_field_button.bind("<Button-1>", lambda *args: add_inf(root))
     del_field_button.bind("<Button-1>", lambda *args: remove_inf())
-    select_columns.bind("<Button-1>", lambda *args: select_columns_event())
-    close_button.bind("<Button-1>", close_event)
+    select_columns.bind("<Button-1>", lambda *args: select_columns_event(root, pane))
+    close_button.bind("<Button-1>", lambda *args: close_event(pane, save_event))
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
@@ -265,7 +292,7 @@ def create_toolbar():
     tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
-def create_list4db(win):
+def create_list4db(root: tk.Tk, pane: ttk.Panedwindow):
     """
     Автор:
     Цель:   создание виджета Listbox для выбора загруженных баз даннных
@@ -274,14 +301,14 @@ def create_list4db(win):
             список активных столбцов таблицы.
     Выход:  нет
     """
-    list_frame4check = tk.LabelFrame(win, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
+    list_frame4check = tk.LabelFrame(root, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
                                      bg='white')
     lsb_base = tk.Listbox(list_frame4check, selectmode='browse')
     for name, base in glob.work_list.items():
         lsb_base.insert(tk.END, name)
     glob.base_list = lsb_base
     lsb_base.bind('<Double-Button-1>',
-                  lambda *args: open_base(win, lsb_base.curselection()))
+                  lambda *args: open_base(root, pane, lsb_base.curselection()))
     lsb_base.pack(side="left", fill="both", expand=True)
     return list_frame4check
     # list_frame4check.grid(row=1, column=0, sticky="NSEW")
@@ -312,7 +339,7 @@ def create_menu(win: tk.Tk):
     win.config(menu=menubar)
 
 
-def create_workspace(win):
+def create_workspace(root: tk.Tk, pane: ttk.Panedwindow):
     """
         Автор:
         Цель:   создает рабочее пространство с таблицей
@@ -324,7 +351,7 @@ def create_workspace(win):
 
     # создаем и заполняем нашу таблицу
     title = glob.columns
-    frame = tk.LabelFrame(win, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
+    frame = tk.LabelFrame(pane, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
     tree = ttk.Treeview(frame, columns=title, height=glob.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(glob.current_base.index)):
@@ -336,8 +363,8 @@ def create_workspace(win):
     # скроллбары для нее
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
     hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
-    tree.bind("<Button-1>", lambda event, mode="Single": workspace_onclick_event(event, mode))
-    tree.bind("<Double-Button-1>", lambda event, mode="Double": workspace_onclick_event(event, mode))
+    tree.bind("<Button-1>", lambda event, mode="Single": workspace_onclick_event(root, event, mode))
+    tree.bind("<Double-Button-1>", lambda event, mode="Double": workspace_onclick_event(root, event, mode))
     tree.configure(yscrollcommand=vsb.set)
     tree.configure(xscrollcommand=hsb.set)
 

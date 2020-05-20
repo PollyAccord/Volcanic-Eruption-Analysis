@@ -45,7 +45,6 @@ base_list: Listbox = None
 
 columns_selection: dict = None
 
-root: Tk = None
 pane: PanedWindow = None
 tree_rows_number: int = 40
 

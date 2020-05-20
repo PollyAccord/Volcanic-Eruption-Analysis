@@ -16,7 +16,6 @@ def setup() -> tk.Tk:
     Выход: объект главного окна
     """
     root = tk.Tk()
-    glob.root = root
 
     ui.save_icon = tk.PhotoImage(file="../Graphics/save_icon.gif")
     ui.add_icon = tk.PhotoImage(file="../Graphics/add_icon.gif")
@@ -34,13 +33,13 @@ def setup() -> tk.Tk:
     ui.create_menu(root)
 
     # фрейм кнопочек
-    ui.create_toolbar()
+    ui.create_toolbar(root, pane)
 
     # лист для баз данных
-    frame = ui.create_list4db(pane)
+    frame = ui.create_list4db(root, pane)
 
     pane.add(frame, weight=1)
-    pls_select_frame = ui.show_invitation()
+    pls_select_frame = ui.show_invitation(pane)
     pane.add(pls_select_frame, weight=9)
     pane.grid(row=1, column=0, columnspan=3, sticky="NSEW")
 
@@ -108,31 +107,12 @@ def save_event(*args):
         hand_base.save_base()
 
 
-def close_event(*args):
-    """
-        Автор:
-        Цель:
-        Вход:
-        Выход:
-    """
-    # открыта ли база?
-    if not ui.is_db_open():
-        return "break"
-    # сохранена ли база?
-    if not glob.is_saved():
-        ans = err.yes_no("Сохранить изменения?")
-        if ans:
-            hand_base.save_base()
-    glob.delete_current_base()
-    glob.pane.forget(1)
-    pls_select_frame = ui.show_invitation()
-    glob.pane.add(pls_select_frame, weight=9)
+
 
 
 ui.load_event = load_event
 ui.create_event = create_event
 ui.save_event = save_event
-ui.close_event = close_event
 root = setup()
 root.config(background="white")
 
