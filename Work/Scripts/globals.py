@@ -1,12 +1,15 @@
 from tkinter import Listbox
-from tkinter import Tk
-from tkinter.ttk import PanedWindow
+from tkinter import PhotoImage
 from tkinter.ttk import Treeview
+from typing import Dict
 
 import numpy as np
 from pandas import DataFrame
 
+import Work.Library.error_edit_windows as err
 from Work.Scripts import constants
+
+Icons = Dict[str, PhotoImage]
 
 columns: list = constants.origin_columns
 """
@@ -44,20 +47,39 @@ base_list: Listbox = None
 """
 
 columns_selection: dict = None
+"""
+    Словарь для выбоа столбцов, которые должны отображаться в программе, 
+    Столбец: значение, где значение отвечает, будет ли отображаться столбец
+"""
 
-pane: PanedWindow = None
-tree_rows_number: int = 40
+icons: Icons = {}
+
+sort = True
+"""показывает, как отсортирована таблица"""
 
 
 def is_saved() -> bool:
     """
     Автор:
-    Цель:
-    Вход:
-    Выход:
+    Цель: проверяет, сохранена ли база
+    Вход: нет
+    Выход: true, false
     """
     global current_base_name
     if "*" in current_base_name:
+        return False
+    return True
+
+
+def is_db_open() -> bool:
+    """
+            Автор:
+            Цель: проверка, окрыта ли база
+            Вход: Нет
+            Выход: true, false
+    """
+    if current_base is None:
+        err.error("База не выбранна!")
         return False
     return True
 

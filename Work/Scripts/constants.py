@@ -6,3 +6,4 @@ origin_columns = ['Year', 'Month', 'Day', 'Name', 'Location', 'Country', 'Latitu
     Если в загружаемой в программу БД нет столбца(ов), то (придумать что будет)
 """
 
+tree_rows_number: int = 40

@@ -16,24 +16,23 @@ def setup() -> tk.Tk:
     Выход: объект главного окна
     """
     root = tk.Tk()
+    glob.icons = {'save_icon': tk.PhotoImage(file="../Graphics/save_icon.gif"),
+                  'add_icon': tk.PhotoImage(file="../Graphics/add_icon.gif"),
+                  'edit_icon': tk.PhotoImage(file="../Graphics/edit_icon.gif"),
+                  'load_icon': tk.PhotoImage(file="../Graphics/load_icon.gif"),
+                  'close_icon': tk.PhotoImage(file="../Graphics/close_icon.gif"),
+                  'add_field_icon': tk.PhotoImage(file="../Graphics/add_field_icon.gif"),
+                  'del_field_icon': tk.PhotoImage(file="../Graphics/del_field_icon.gif")}
 
-    ui.save_icon = tk.PhotoImage(file="../Graphics/save_icon.gif")
-    ui.add_icon = tk.PhotoImage(file="../Graphics/add_icon.gif")
-    ui.edit_icon = tk.PhotoImage(file="../Graphics/edit_icon.gif")
-    ui.load_icon = tk.PhotoImage(file="../Graphics/load_icon.gif")
-    ui.close_icon = tk.PhotoImage(file="../Graphics/close_icon.gif")
-    ui.add_field_icon = tk.PhotoImage(file="../Graphics/add_field_icon.gif")
-    ui.del_field_icon = tk.PhotoImage(file="../Graphics/del_field_icon.gif")
     root.title('Volcano Analyse')
 
     pane = ttk.PanedWindow(root, orient=tk.HORIZONTAL, width=1)
-    glob.pane = pane
 
     # создаем и заполняем строчку меню
-    ui.create_menu(root)
+    ui.create_menu(root, load_event)
 
     # фрейм кнопочек
-    ui.create_toolbar(root, pane)
+    ui.create_toolbar(root, pane, load_event, save_event, create_event, glob.icons)
 
     # лист для баз данных
     frame = ui.create_list4db(root, pane)
@@ -105,9 +104,6 @@ def save_event(*args):
         glob.update_list()
         # сохраняем в файл
         hand_base.save_base()
-
-
-
 
 
 ui.load_event = load_event

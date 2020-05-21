@@ -8,32 +8,19 @@ import pandas as pd
 from Work.Library import error_edit_windows as err
 from Work.Scripts import globals as glob
 
-# набор глобальных переменных
-sort = True  # показывает, как отсортирована таблица и dataframe4check
-load_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
-save_event = None  # глобальная переменная для передачи объекта функции загрузки базы данных
-create_event = None
-# иконки
-save_icon = None
-add_icon = None
-edit_icon = None
-load_icon = None
-close_icon = None
-add_field_icon = None
-del_field_icon = None
-
 
 # events ---------------------------------------------------------------------------------------
 
 def close_event(pane: ttk.Panedwindow, save):
     """
         Автор:
-        Цель:
-        Вход:
-        Выход:
+        Цель:   закрывает открытую базу и показывает приглащение к открытию новой на правой стороне pane,
+                save вызывается для сохранения базы, по решению пользователя
+        Вход: pane - растягивающийся виджет, save - объект функции save_event из main
+        Выход: нет
     """
     # открыта ли база?
-    if not is_db_open():
+    if not glob.is_db_open():
         return "break"
     # сохранена ли база?
     if not glob.is_saved():
@@ -54,7 +41,7 @@ def remove_inf():
         \nВыход: нет
     """
     # открыта ли база?
-    if not is_db_open():
+    if not glob.is_db_open():
         return "break"
     # пуста ли база?
     if glob.current_base.empty:
@@ -78,7 +65,7 @@ def edit_event(root: tk.Tk):
         Выход:  нет
     """
     # открыта ли база?
-    if not is_db_open():
+    if not glob.is_db_open():
         return "break"
     # пуста ли база?
     if glob.current_base.empty:
@@ -97,7 +84,7 @@ def edit_event(root: tk.Tk):
     frame4check4button = tk.Frame(edit_win)
     list4changes = {}
     for i in constants.origin_columns:
-        # все значения будут строкой, при сохранении в dataframe4check мы осуществим приведение чисел к числовому типу
+        # все значения будут строкой
         text = tk.StringVar()
         # если атрибут nan или 0, то вместо него отображаем пустую строчку
         if pd.isna(curr_item[i]) or (i in ['Year', 'Month', 'Day'] and curr_item[i] == 0):
@@ -172,7 +159,7 @@ def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow)
 
 def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     # открыта ли база?
-    if not is_db_open():
+    if not glob.is_db_open():
         return "break"
     win = tk.Toplevel(root)
     win.title("Выберете стобцы")
@@ -210,9 +197,8 @@ def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
     Автор:
     Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
     Вход:   объект главного окна,
-            ключ (имя) выбранной базы,
-            словарь текущий загруженных баз данных (имя: база данных),
-            список активных столбцов таблицы.
+            объект растягиваемого виджета,
+            индекс базы в Listbox
     Выход:  нет
     """
     glob.current_base_list_id = selected
@@ -224,21 +210,34 @@ def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
 
 
 def workspace_onclick_event(root, event, mode: str):
-    global sort
-    sort = not sort
+    """
+        Автор:
+        Цель:   обработчик события нажатия на рабочее пространство таблицы данных
+        Вход:   объект главного окна,
+                информация события,
+                вид нажатия (одинарное, двойное)
+        Выход:  нет
+    """
+    glob.sort = not glob.sort
     tree = glob.table4base
     if mode == "Single":
         if tree.identify_region(event.x, event.y) == "heading":
             column = tree.identify_column(event.x)
             index4column = int(column[1:])
-            glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0, ascending=sort,
-                                                              ignore_index=True)
+            glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0,
+                                                              ascending=glob.sort, ignore_index=True)
             glob.update_workspace()
     elif mode == "Double":
         edit_event(root)
 
 
 def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
+    """
+        Автор:
+        Цель:   создание фрейма с приглашением
+        Вход:   объект растягивающегося виджета,
+        Выход:  фрейм с приглашением
+    """
     # label приглашение к выбору
     pls_select_frame4check = tk.Frame(pane, bg="white")
     lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберете базу данных", bg="white")
@@ -250,35 +249,35 @@ def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
 # frame4checks =======================================================================================
 
 
-def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow):
+def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons: glob.Icons):
     """
     Автор:
     Цель:   создание панели инструментов в главном окне
     Вход:   объект главного окна,
-            список активных столбцов таблицы.
+            объект растягивающегося виджета,
+            объекты функций load_event, save_event, create_event
+            словарь для иконок
     Выход:  нет
     """
-    global load_event
-    global create_event
-    global save_event
-    tools_frame4check = tk.Frame(root, bg="white")
-    add_button = tk.Button(tools_frame4check, image=add_icon, relief="groove", bd=0, bg="white")
-    save_button = tk.Button(tools_frame4check, image=save_icon, relief="groove", bd=0, bg="white")
-    edit_button = tk.Button(tools_frame4check, image=edit_icon, relief="groove", bd=0, bg="white")
-    load_button = tk.Button(tools_frame4check, image=load_icon, relief="groove", bd=0, bg="white")
-    add_field_button = tk.Button(tools_frame4check, image=add_field_icon, relief="groove", bd=0, bg="white")
-    del_field_button = tk.Button(tools_frame4check, image=del_field_icon, relief="groove", bd=0, bg="white")
-    select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
-    close_button = tk.Button(tools_frame4check, image=close_icon, relief="groove", bd=0, bg="white")
 
-    add_button.bind("<Button-1>", create_event)
-    save_button.bind("<Button-1>", save_event)
+    tools_frame4check = tk.Frame(root, bg="white")
+    add_button = tk.Button(tools_frame4check, image=icons['add_icon'], relief="groove", bd=0, bg="white")
+    save_button = tk.Button(tools_frame4check, image=icons['save_icon'], relief="groove", bd=0, bg="white")
+    edit_button = tk.Button(tools_frame4check, image=icons['edit_icon'], relief="groove", bd=0, bg="white")
+    load_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0, bg="white")
+    add_field_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0, bg="white")
+    del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0, bg="white")
+    select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
+    close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0, bg="white")
+
+    add_button.bind("<Button-1>", create)
+    save_button.bind("<Button-1>", save)
     edit_button.bind("<Button-1>", lambda *args: edit_event(root))
-    load_button.bind("<Button-1>", load_event)
+    load_button.bind("<Button-1>", load)
     add_field_button.bind("<Button-1>", lambda *args: add_inf(root))
     del_field_button.bind("<Button-1>", lambda *args: remove_inf())
     select_columns.bind("<Button-1>", lambda *args: select_columns_event(root, pane))
-    close_button.bind("<Button-1>", lambda *args: close_event(pane, save_event))
+    close_button.bind("<Button-1>", lambda *args: close_event(pane, save))
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
@@ -292,14 +291,13 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow):
     tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
-def create_list4db(root: tk.Tk, pane: ttk.Panedwindow):
+def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
     Автор:
-    Цель:   создание виджета Listbox для выбора загруженных баз даннных
+    Цель:   создание виджета Listbox для выбора базы
     Вход:   объект главного окна,
-            словарь для хранения текущих загруженных баз данных (имя: база данных),
-            список активных столбцов таблицы.
-    Выход:  нет
+            объект растягивающегося виджета
+    Выход:  фрейм с Listbox
     """
     list_frame4check = tk.LabelFrame(root, labelanchor='n', text='Базы данных', bd=0, padx=5, pady=5, relief=tk.RIDGE,
                                      bg='white')
@@ -311,21 +309,18 @@ def create_list4db(root: tk.Tk, pane: ttk.Panedwindow):
                   lambda *args: open_base(root, pane, lsb_base.curselection()))
     lsb_base.pack(side="left", fill="both", expand=True)
     return list_frame4check
-    # list_frame4check.grid(row=1, column=0, sticky="NSEW")
 
 
-def create_menu(win: tk.Tk):
+def create_menu(win: tk.Tk, load):
     """
     Автор:
     Цель:   создает меню на главном окне
-    Вход:   объект главного окна.
+    Вход:   объект главного окна, объект функции load
     Выход:  нет
     """
-
-    global load_event
     menubar = tk.Menu(win)
     file = tk.Menu(menubar, tearoff=0)
-    file.add_command(label="Load", command=load_event)
+    file.add_command(label="Load", command=load)
     file.add_command(label="Exit", command=win.quit)
     menubar.add_cascade(label="File", menu=file)
 
@@ -339,20 +334,19 @@ def create_menu(win: tk.Tk):
     win.config(menu=menubar)
 
 
-def create_workspace(root: tk.Tk, pane: ttk.Panedwindow):
+def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
         Автор:
-        Цель:   создает рабочее пространство с таблицей
+        Цель:   создает рабочее пространство таблицы
         Вход:   объект главного окна,
-                выбранная база,
-                активные столбцы.
-        Выход:  нет
+                объект растягивающегося виджета,
+        Выход:  фрейм с таблицей
     """
 
     # создаем и заполняем нашу таблицу
     title = glob.columns
     frame = tk.LabelFrame(pane, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
-    tree = ttk.Treeview(frame, columns=title, height=glob.tree_rows_number, show="headings", selectmode='browse')
+    tree = ttk.Treeview(frame, columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(glob.current_base.index)):
         insert = list(glob.current_base.iloc[i, :])
@@ -379,12 +373,6 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow):
 
 #  =======================================================================================
 
-def is_db_open():
-    if glob.current_base is None:
-        err.error("База не выбранна!")
-        return False
-    return True
-
 
 def add_inf(win: tk.Tk):
     """
@@ -394,7 +382,7 @@ def add_inf(win: tk.Tk):
         Выход: Нет
     """
 
-    if not is_db_open():
+    if not glob.is_db_open():
         return "break"
     root = tk.Toplevel(win)
     root.title("Окно ввода данных")
