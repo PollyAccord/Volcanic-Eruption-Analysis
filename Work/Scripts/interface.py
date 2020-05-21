@@ -1,11 +1,11 @@
 import tkinter as tk
-from Work.Scripts import constants
 import tkinter.ttk as ttk
 from tkinter import messagebox as mb
 
 import pandas as pd
 
 from Work.Library import error_edit_windows as err
+from Work.Scripts import constants
 from Work.Scripts import globals as glob
 
 
@@ -19,6 +19,7 @@ def close_event(pane: ttk.Panedwindow, save):
         Вход: pane - растягивающийся виджет, save - объект функции save_event из main
         Выход: нет
     """
+
     # открыта ли база?
     if not glob.is_db_open():
         return "break"
@@ -265,7 +266,7 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     save_button = tk.Button(tools_frame4check, image=icons['save_icon'], relief="groove", bd=0, bg="white")
     edit_button = tk.Button(tools_frame4check, image=icons['edit_icon'], relief="groove", bd=0, bg="white")
     load_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0, bg="white")
-    add_field_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0, bg="white")
+    add_field_button = tk.Button(tools_frame4check, image=icons['add_field_icon'], relief="groove", bd=0, bg="white")
     del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0, bg="white")
     select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
     close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0, bg="white")
