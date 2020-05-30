@@ -1,23 +1,29 @@
+from tkinter import BooleanVar
 from tkinter import Listbox
 from tkinter import PhotoImage
 from tkinter.ttk import Treeview
 from typing import Dict
+from typing import List
 
 import numpy as np
 from pandas import DataFrame
 
-import Work.Library.error_edit_windows as err
+from Work.Library import error_edit_windows as err
 from Work.Scripts import constants
 
+# просто типы данных для удобства исипользования в подсказках
 Icons = Dict[str, PhotoImage]
+BaseRecord = Dict[str, DataFrame]
+SelectionDict = Dict[str, BooleanVar]
+Columns = List[str]
 
-columns: list = constants.origin_columns
+columns: Columns = constants.origin_columns
 """
     В columns будут храниться все столбцы, отображаемые в данный момент в программе.
     Программа будет автоматически отображать новые столбцы и убирать удаленные.  
 """
 
-work_list: dict = {}
+work_list: BaseRecord = {}
 """
     Словарь со значениями (Имя БД: объект БД).
     В нем хранятся все базы данных, которые были загруженны в программу.
@@ -46,16 +52,17 @@ base_list: Listbox = None
     с помощью него осуществляется выбор пользователем
 """
 
-columns_selection: dict = None
+columns_selection: SelectionDict = None
 """
-    Словарь для выбоа столбцов, которые должны отображаться в программе, 
-    Столбец: значение, где значение отвечает, будет ли отображаться столбец
+    Словарь для выбора столбцов, которые должны отображаться в программе,\n
+    {Столбец: Значение}, где значение отвечает, будет ли отображаться столбец
 """
 
 icons: Icons = {}
+"""для иконок, нужна для того, чтобы garbage collector не съедал их из-за отсутствия ссылки на них"""
 
 sort = True
-"""показывает, как отсортирована таблица"""
+"""переключатель для сортировки таблицы"""
 
 
 def is_saved() -> bool:
@@ -73,10 +80,10 @@ def is_saved() -> bool:
 
 def is_db_open() -> bool:
     """
-            Автор:
-            Цель: проверка, окрыта ли база
-            Вход: Нет
-            Выход: true, false
+    Автор:
+    Цель: проверка, окрыта ли база
+    Вход: Нет
+    Выход: true, false
     """
     if current_base is None:
         err.error("База не выбранна!")
@@ -85,6 +92,12 @@ def is_db_open() -> bool:
 
 
 def delete_current_base():
+    """
+    Автор:
+    Цель:   удаляет базу из программы
+    Вход:  нет
+    Выход:  нет
+    """
     global work_list, current_base_name, current_base_list_id, current_base
     del work_list[current_base_name]
     current_base = None
@@ -94,12 +107,24 @@ def delete_current_base():
 
 
 def mark_changes():
+    """
+    Автор:
+    Цель:   убирает пометку в имени текущей базы наличие несохраненных изменений
+    Вход:  нет
+    Выход:  нет
+    """
     global current_base_name
     if is_saved():
         current_base_name += "*"
 
 
 def unmark_changes():
+    """
+    Автор:
+    Цель:   помечает в имени текущей базы наличие несохраненных изменений
+    Вход:  нет
+    Выход:  нет
+    """
     global current_base_name
     if not is_saved():
         current_base_name = current_base_name.replace('*', '')
@@ -127,9 +152,9 @@ def correct_base_values(base: DataFrame) -> DataFrame:
 def update_workspace():
     """
     Автор:
-    Цель:
-    Вход:
-    Выход:
+    Цель: обновляет содержимое рабочего пространства
+    Вход: нет
+    Выход: нет
     """
     global current_base
     global columns
@@ -143,11 +168,10 @@ def update_workspace():
 def clear_workspace():
     """
     Автор:
-    Цель:
-    Вход:
-    Выход:
+    Цель: очищает рабочее пространство
+    Вход: нет
+    Выход: нет
     """
-
     global current_base
     global columns
     assert current_base is not None
@@ -157,9 +181,9 @@ def clear_workspace():
 def update_list():
     """
     Автор:
-    Цель:
-    Вход:
-    Выход:
+    Цель: заново добавляет текущую базу в base_list
+    Вход: нет
+    Выход: нет
     """
     global current_base
     global current_base_list_id

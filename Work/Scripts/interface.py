@@ -6,7 +6,7 @@ import pandas as pd
 
 from Work.Library import error_edit_windows as err
 from Work.Scripts import constants
-from Work.Scripts import globals as glob
+from Work.Scripts import globalvars as glob
 
 
 # events ---------------------------------------------------------------------------------------
@@ -136,20 +136,33 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
 
 
 def uncheck_all_event(*args):
+    """
+    Автор:
+    Цель:   снимает метки со всех значений columns_selection
+    Вход:   нет
+    Выход:  нет
+    """
     [x.set(0) for x in glob.columns_selection.values()]
 
 
 def check_all_event(*args):
+    """
+    Автор:
+    Цель:   ставит метки на все значения columns_selection
+    Вход:   нет
+    Выход:  нет
+    """
     [x.set(1) for x in glob.columns_selection.values()]
 
 
 def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow):
-    flag = False
-    for x in glob.columns_selection.values():
-        if x.get() == 1:
-            flag = True
-            break
-    if flag:
+    """
+    Автор:
+    Цель:   применяет к программме выбор столбцов (изменяет рабочее пространство)
+    Вход:   главное окно, побочное окно выбора столбцов, растягивающийся виджет
+    Выход:  нет
+    """
+    if any(glob.columns_selection.values()):
         glob.columns = [x for x in glob.columns_selection.keys() if glob.columns_selection[x].get() == 1]
         open_base(root, pane, glob.current_base_list_id)
         win.destroy()
@@ -159,6 +172,12 @@ def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow)
 
 
 def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
+    """
+    Автор:
+    Цель:   открывает окно для выбора столбцов, которые надо показать в программе
+    Вход:   главное окно, растягивающийся виджет
+    Выход:  нет
+    """
     # открыта ли база?
     if not glob.is_db_open():
         return "break"
@@ -166,16 +185,17 @@ def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Выберете стобцы")
     glob.columns_selection = {k: v
                               for k in constants.origin_columns
-                              for v in [tk.IntVar() for x in range(len(glob.constants.origin_columns))]
+                              for v in [tk.BooleanVar() for x in range(len(glob.constants.origin_columns))]
                               }
     frame4check = tk.Frame(win)
     frame4button = tk.Frame(win)
 
     i = 0
+    # раставляем checkbutton'ы и устанавливаем их в активное (отмеченное) положение по текущим показывающимся столбцам
     for text, value in glob.columns_selection.items():
-        ttk.Checkbutton(frame4check, style="Selection.TCheckbutton", text=text, variable=value).grid(row=i, column=1,
-                                                                                                     sticky='NSEW')
-        value.set(1) if text in glob.columns else value.set(0)
+        ttk.Checkbutton(frame4check, style="Selection.TCheckbutton", text=text, variable=value, onvalue=True,
+                        offvalue=False).grid(row=i, column=1, sticky='NSEW')
+        value.set(True) if text in glob.columns else value.set(False)
         i += 1
     apply_button = tk.Button(frame4button, text="Применить")
     uncheck_all_button = tk.Button(frame4button, text="Снять выбор")
@@ -220,13 +240,16 @@ def workspace_onclick_event(root, event, mode: str):
     """
     glob.sort = not glob.sort
     tree = glob.table4base
+    # одиночное нажатие по заголовку - сортировка
     if mode == "Single":
         if tree.identify_region(event.x, event.y) == "heading":
             column = tree.identify_column(event.x)
             index4column = int(column[1:])
             glob.current_base = glob.current_base.sort_values(by=glob.columns[index4column - 1], axis=0,
                                                               ascending=glob.sort, ignore_index=True)
+            glob.current_base = glob.correct_base_values(glob.current_base)
             glob.update_workspace()
+    # двойное нажатие по полю - редактирование
     elif mode == "Double":
         edit_event(root)
 
@@ -371,7 +394,7 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     # создаем и заполняем нашу таблицу
     title = glob.columns
     frame = tk.LabelFrame(pane, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
-    tree = ttk.Treeview(frame, style="A.Treeview", columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
+    tree = ttk.Treeview(frame, columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(glob.current_base.index)):
         insert = list(glob.current_base[glob.columns].iloc[i, :])
@@ -534,6 +557,12 @@ def add_inf(win: tk.Tk):
 
 
 def accept(root, list4values):
+    """
+    Автор:
+    Цель:
+    Вход:
+    Выход:
+    """
     flag = True
     if (list4values['Day'].get() > 29) and (list4values['Month'].get() == 2):
         flag = False

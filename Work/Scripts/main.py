@@ -4,7 +4,7 @@ from tkinter import filedialog
 
 from Work.Library import error_edit_windows as err
 from Work.Scripts import base_handling as hand_base
-from Work.Scripts import globals as glob
+from Work.Scripts import globalvars as glob
 from Work.Scripts import interface as ui
 
 
@@ -54,6 +54,12 @@ def setup() -> tk.Tk:
 
 
 def load_event(*args):
+    """
+        Автор:
+        Цель:  обработка события загрузки новой базы инструментами OS
+        Вход: Нет
+        Выход: нет
+    """
     path = filedialog.askopenfilename(initialdir="../Data/",
                                       filetypes=(("Database files", "*.csv"), ("All files", "*.*")))
     path = path.replace('/', "\\")
