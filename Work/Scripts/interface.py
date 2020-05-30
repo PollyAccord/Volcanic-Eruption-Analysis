@@ -170,8 +170,7 @@ def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
                               }
     frame4check = tk.Frame(win)
     frame4button = tk.Frame(win)
-    s = ttk.Style()
-    s.configure('Selection.TCheckbutton', anchor="w")
+
     i = 0
     for text, value in glob.columns_selection.items():
         ttk.Checkbutton(frame4check, style="Selection.TCheckbutton", text=text, variable=value).grid(row=i, column=1,
@@ -246,6 +245,24 @@ def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
     return pls_select_frame4check
 
 
+def show_form(root, pane, selector, form: str, save):
+    if not glob.is_db_open():
+        selector.current(0)
+    if not glob.is_saved():
+        ans = err.yes_no("Сохранить изменения?")
+        if ans:
+            save()
+    if form == "Общий вид":
+        glob.columns = constants.origin_columns
+    elif form == "Вид первый":
+        glob.columns = constants.first_form
+    elif form == "Вид второй":
+        glob.columns = constants.second_form
+    elif form == "Вид третий":
+        glob.columns = constants.third_form
+
+    open_base(root, pane, glob.current_base_list_id)
+
 #  ---------------------------------------------------------------------------------------
 # frame4checks =======================================================================================
 
@@ -270,13 +287,19 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0, bg="white")
     select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
     close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0, bg="white")
-
+    table_normal_forms_selector = ttk.Combobox(tools_frame4check, state='readonly', values=["Общий вид", "Вид первый", "Вид второй", "Вид третий"])
+    table_normal_forms_selector.current(0)
     add_button.bind("<Button-1>", create)
     save_button.bind("<Button-1>", save)
     edit_button.bind("<Button-1>", lambda *args: edit_event(root))
     load_button.bind("<Button-1>", load)
     add_field_button.bind("<Button-1>", lambda *args: add_inf(root))
     del_field_button.bind("<Button-1>", lambda *args: remove_inf())
+    table_normal_forms_selector.bind("<<ComboboxSelected>>",
+                                     lambda event: show_form(root, pane,
+                                                             table_normal_forms_selector,
+                                                             table_normal_forms_selector.get(),
+                                                             save))
     select_columns.bind("<Button-1>", lambda *args: select_columns_event(root, pane))
     close_button.bind("<Button-1>", lambda *args: close_event(pane, save))
 
@@ -286,8 +309,9 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     edit_button.grid(row=0, column=3, padx=2, pady=2, sticky="NSEW")
     add_field_button.grid(row=0, column=4, padx=2, pady=2, sticky="NSEW")
     del_field_button.grid(row=0, column=5, padx=2, pady=2, sticky="NSEW")
-    select_columns.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
-    close_button.grid(row=0, column=7, padx=2, pady=2, sticky="NSEW")
+    table_normal_forms_selector.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
+    select_columns.grid(row=0, column=7, padx=2, pady=2, sticky="NSEW")
+    close_button.grid(row=0, column=8, padx=2, pady=2, sticky="NSEW")
     tools_frame4check.grid_rowconfigure(0, minsize=20)
     tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
@@ -347,10 +371,10 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     # создаем и заполняем нашу таблицу
     title = glob.columns
     frame = tk.LabelFrame(pane, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
-    tree = ttk.Treeview(frame, columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
+    tree = ttk.Treeview(frame, style="A.Treeview", columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
     for i in range(len(glob.current_base.index)):
-        insert = list(glob.current_base.iloc[i, :])
+        insert = list(glob.current_base[glob.columns].iloc[i, :])
         tree.insert('', 'end', iid=i, values=insert)
     # меняем ширину столбца для красоты
     for i in range(1, len(title) + 1):
@@ -367,7 +391,7 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     glob.table4base = tree
     hsb.pack(side='bottom', fill='both')
     vsb.pack(side='right', fill='both')
-    tree.pack(side='top')
+    tree.pack(side='top', fill='x')
 
     return frame
 

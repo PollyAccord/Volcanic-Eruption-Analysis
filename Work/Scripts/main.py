@@ -16,6 +16,8 @@ def setup() -> tk.Tk:
     Выход: объект главного окна
     """
     root = tk.Tk()
+    style = ttk.Style()
+    style.configure('Selection.TCheckbutton', anchor="w")
     glob.icons = {'save_icon': tk.PhotoImage(file="../Graphics/save_icon.gif"),
                   'add_icon': tk.PhotoImage(file="../Graphics/add_icon.gif"),
                   'edit_icon': tk.PhotoImage(file="../Graphics/edit_icon.gif"),
@@ -95,7 +97,7 @@ def save_event(*args):
     Выход:
     """
     # открыта ли база?
-    if not ui.is_db_open():
+    if not glob.is_db_open():
         return "break"
     # сохранена ли база?
     if not glob.is_saved():
