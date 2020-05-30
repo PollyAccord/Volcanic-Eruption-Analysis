@@ -52,7 +52,9 @@ def remove_inf():
     if ans:
         # todo: можно ли оптимизировать?
         index = glob.table4base.index(glob.table4base.selection())
+        glob.table4base.delete(list(glob.current_base.index)[-1])
         glob.current_base = glob.current_base.drop(index=index)
+        glob.current_base.reset_index(inplace=True, drop=True)
         glob.mark_changes()
         glob.update_workspace()
         glob.update_list()
@@ -122,7 +124,7 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     Выход:  нет
     """
     # приводим все числа к числовому типу
-    glob.current_base.iloc[index, :] = [pd.to_numeric(x.get(), errors="ignore") for x in new_values.values()]
+    glob.current_base.iloc[index, :] = [x.get() for x in new_values.values()]
     # заменяем пустые строчки на nan и приводим тип всех столбцов таблицы к нужному типу
     glob.current_base = glob.correct_base_values(glob.current_base)
     glob.work_list[glob.current_base_name] = glob.current_base
@@ -396,7 +398,7 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     frame = tk.LabelFrame(pane, labelanchor='n', text='Данные', bd=0, pady=5, padx=5, relief=tk.RIDGE, bg='white')
     tree = ttk.Treeview(frame, columns=title, height=constants.tree_rows_number, show="headings", selectmode='browse')
     [tree.heading('#' + str(x + 1), text=title[x]) for x in range(len(title))]
-    for i in range(len(glob.current_base.index)):
+    for i in list(glob.current_base.index):
         insert = list(glob.current_base[glob.columns].iloc[i, :])
         tree.insert('', 'end', iid=i, values=insert)
     # меняем ширину столбца для красоты
@@ -575,8 +577,9 @@ def accept(root, list4values):
     if (list4values['Longitude'].get() > 180) or (list4values['Longitude'].get() < -180):
         flag = False
     if flag:
-        glob.current_base = glob.current_base.append(
-            {k: pd.to_numeric(v.get(), errors="ignore") for k, v in list4values.items()}, ignore_index=True)
+
+        glob.current_base = glob.current_base.append({k: v.get() for k, v in list4values.items()}, ignore_index=True)
+        glob.current_base = glob.correct_base_values(glob.current_base)
         glob.work_list[glob.current_base_name] = glob.current_base
         new_item = glob.table4base.insert('', 'end', iid=len(glob.current_base.index) - 1)
         for i in glob.columns:

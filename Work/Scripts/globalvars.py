@@ -139,6 +139,7 @@ def correct_base_values(base: DataFrame) -> DataFrame:
     Вход:  нет
     Выход:  нет
     """
+    base = base.replace('', np.nan)
     base[['Year', 'Month', 'Day']] = base[['Year', 'Month', 'Day']].replace(np.nan, 0)
     base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = base[
         ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
@@ -146,6 +147,14 @@ def correct_base_values(base: DataFrame) -> DataFrame:
                         'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
                         'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
                         'DAMAGE_MILLIONS_DOLLARS': 'float64'})
+    base[['Name', 'Location', 'Country',
+          'Type', 'Agent', 'TSU',
+          'EQ']] = base[['Name', 'Location', 'Country',
+                         'Type', 'Agent', 'TSU',
+                         'EQ']].astype(str)
+    base = base.astype({'Name': 'string', 'Location': 'string', 'Country': 'string',
+                        'Type': 'string', 'Agent': 'string', 'TSU': 'string',
+                        'EQ': 'string'})
     return base
 
 
@@ -159,7 +168,7 @@ def update_workspace():
     global current_base
     global columns
     assert current_base is not None
-    for i in range(len(current_base.index)):
+    for i in list(current_base.index):
         insert = current_base.iloc[i, :]
         for j in columns:
             table4base.set(i, column=j, value=insert[j])
