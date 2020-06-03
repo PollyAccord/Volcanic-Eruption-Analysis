@@ -1,7 +1,7 @@
 import pandas as pd
 
-from Work.Scripts import constants
-from Work.Scripts import globalvars as glob
+from Scripts import constants
+from Scripts import globalvars as glob
 
 # ['Year', 'Month', 'Day', 'Name', 'Location', 'Country', 'Latitude', 'Longitude', 'Elevation', 'Type', 'VEI', 'Agent', 'DEATHS', 'INJURIES', 'MISSING', 'DAMAGE_MILLIONS_DOLLARS', 'TSU', 'EQ']
 bd = pd.read_csv('../Data/volcano.csv', header=0)[['Year', 'Month', 'Day', 'Name', 'Location',

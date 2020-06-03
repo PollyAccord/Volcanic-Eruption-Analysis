@@ -1,7 +1,7 @@
 import math as m
 import tkinter as tk
 
-from Work.Scripts import globalvars as glob
+from Scripts import globalvars as glob
 
 
 def statistics_base(root: tk.Toplevel, string):

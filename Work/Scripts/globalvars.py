@@ -8,8 +8,8 @@ from typing import List
 import numpy as np
 from pandas import DataFrame
 
-from Work.Library import error_edit_windows as err
-from Work.Scripts import constants
+from Library import error_edit_windows as err
+from Scripts import constants
 
 # просто типы данных для удобства исипользования в подсказках
 Icons = Dict[str, PhotoImage]
@@ -22,6 +22,8 @@ columns: Columns = constants.origin_columns
     В columns будут храниться все столбцы, отображаемые в данный момент в программе.
     Программа будет автоматически отображать новые столбцы и убирать удаленные.  
 """
+
+selected_form: str = 'Общий вид'
 
 work_list: BaseRecord = {}
 """

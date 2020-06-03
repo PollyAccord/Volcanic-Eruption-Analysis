@@ -1,11 +1,16 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath('..'))
+
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
 
-from Work.Library import error_edit_windows as err
-from Work.Scripts import base_handling as hand_base
-from Work.Scripts import globalvars as glob
-from Work.Scripts import interface as ui
+from Scripts import base_handling as hand_base
+from Scripts import globalvars as glob
+from Scripts import interface as ui
+from Library import error_edit_windows as err
 
 
 def setup() -> tk.Tk:

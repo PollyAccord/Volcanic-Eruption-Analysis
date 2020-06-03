@@ -4,9 +4,9 @@ from tkinter import messagebox as mb
 
 import pandas as pd
 
-from Work.Library import error_edit_windows as err
-from Work.Scripts import constants
-from Work.Scripts import globalvars as glob
+from Library import error_edit_windows as err
+from Scripts import constants
+from Scripts import globalvars as glob
 
 
 # events ---------------------------------------------------------------------------------------
@@ -277,6 +277,7 @@ def show_form(root, pane, selector, form: str, save):
         ans = err.yes_no("Сохранить изменения?")
         if ans:
             save()
+    glob.selected_form = form
     if form == "Общий вид":
         glob.columns = constants.origin_columns
     elif form == "Вид первый":
