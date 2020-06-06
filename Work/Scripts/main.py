@@ -15,7 +15,7 @@ from Library import error_edit_windows as err
 
 def setup() -> tk.Tk:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: создание главного окна и расстановка всех его компонентов
     Вход: Нет
     Выход: объект главного окна
@@ -23,13 +23,13 @@ def setup() -> tk.Tk:
     root = tk.Tk()
     style = ttk.Style()
     style.configure('Selection.TCheckbutton', anchor="w")
-    glob.icons = {'save_icon': tk.PhotoImage(file="../Graphics/save_icon.gif"),
-                  'add_icon': tk.PhotoImage(file="../Graphics/add_icon.gif"),
-                  'edit_icon': tk.PhotoImage(file="../Graphics/edit_icon.gif"),
-                  'load_icon': tk.PhotoImage(file="../Graphics/load_icon.gif"),
-                  'close_icon': tk.PhotoImage(file="../Graphics/close_icon.gif"),
-                  'add_field_icon': tk.PhotoImage(file="../Graphics/add_field_icon.gif"),
-                  'del_field_icon': tk.PhotoImage(file="../Graphics/del_field_icon.gif")}
+    glob.icons = {'save_icon': tk.PhotoImage(file="../Graphics/save_icon.gif", master=root),
+                  'add_icon': tk.PhotoImage(file="../Graphics/add_icon.gif", master=root),
+                  'edit_icon': tk.PhotoImage(file="../Graphics/edit_icon.gif", master=root),
+                  'load_icon': tk.PhotoImage(file="../Graphics/load_icon.gif", master=root),
+                  'close_icon': tk.PhotoImage(file="../Graphics/close_icon.gif", master=root),
+                  'add_field_icon': tk.PhotoImage(file="../Graphics/add_field_icon.gif", master=root),
+                  'del_field_icon': tk.PhotoImage(file="../Graphics/del_field_icon.gif", master=root)}
 
     root.title('Volcano Analyse')
 
@@ -60,7 +60,7 @@ def setup() -> tk.Tk:
 
 def load_event(*args):
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:  обработка события загрузки новой базы инструментами OS
         Вход: Нет
         Выход: нет
@@ -79,7 +79,7 @@ def load_event(*args):
 
 def create_event(*args):
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   создание новой базы, если база уже существует в рабочей директории
                 windows обеспечивает выбор, перезаписывать файл или нет.
         Вход: Нет
@@ -102,7 +102,7 @@ def create_event(*args):
 
 def save_event(*args):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:
     Вход:
     Выход:
@@ -123,10 +123,12 @@ ui.load_event = load_event
 ui.create_event = create_event
 ui.save_event = save_event
 root = setup()
+
 root.config(background="white")
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
+
 widthRatio = 1200 / 1920
 heightRatio = 800 / 1080
 app_width = int(screen_width * widthRatio)

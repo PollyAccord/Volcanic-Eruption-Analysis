@@ -5,15 +5,19 @@ from tkinter import messagebox as mb
 import pandas as pd
 
 from Library import error_edit_windows as err
+from Scripts import base_handling as hand_base
 from Scripts import constants
 from Scripts import globalvars as glob
+from Scripts import new_map as mp
+from Scripts import new_table as tb
+from Scripts import statistics as stat
 
 
 # events ---------------------------------------------------------------------------------------
 
 def close_event(pane: ttk.Panedwindow, save):
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   закрывает открытую базу и показывает приглащение к открытию новой на правой стороне pane,
                 save вызывается для сохранения базы, по решению пользователя
         Вход: pane - растягивающийся виджет, save - объект функции save_event из main
@@ -36,7 +40,7 @@ def close_event(pane: ttk.Panedwindow, save):
 
 def remove_inf():
     """
-        Автор:
+        Автор: Ковязин В.
         \nЦель: удаляет строку из таблицы
         \nВход: корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы
         \nВыход: нет
@@ -48,7 +52,7 @@ def remove_inf():
     if glob.current_base.empty:
         err.error("База пуста")
         return "break"
-    ans = err.yes_no("Вы точно хотите удалить строчку?")
+    ans = err.yes_no("Вы точно хотите удалить данные?\n Это повлечёт полное удаление данных по выбранному вулкану.")
     if ans:
         # todo: можно ли оптимизировать?
         index = glob.table4base.index(glob.table4base.selection())
@@ -62,7 +66,7 @@ def remove_inf():
 
 def edit_event(root: tk.Tk):
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   обработчик события кнопки изменения поля таблицы, открывает окно для изменения данных
         Вход:   корневое окно tkinter для создания окна редактирования
         Выход:  нет
@@ -116,7 +120,7 @@ def edit_event(root: tk.Tk):
 
 def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   обработчик события кнопки сохранения в окне редактирования поля таблицы
     Вход:   объект окна редактирования tkinter для его закрытия после нажатия кнопки сохранить,
             текущий индекс выбранного поля таблицы,
@@ -139,7 +143,7 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
 
 def uncheck_all_event(*args):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   снимает метки со всех значений columns_selection
     Вход:   нет
     Выход:  нет
@@ -149,7 +153,7 @@ def uncheck_all_event(*args):
 
 def check_all_event(*args):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   ставит метки на все значения columns_selection
     Вход:   нет
     Выход:  нет
@@ -159,7 +163,7 @@ def check_all_event(*args):
 
 def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   применяет к программме выбор столбцов (изменяет рабочее пространство)
     Вход:   главное окно, побочное окно выбора столбцов, растягивающийся виджет
     Выход:  нет
@@ -175,7 +179,7 @@ def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow)
 
 def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   открывает окно для выбора столбцов, которые надо показать в программе
     Вход:   главное окно, растягивающийся виджет
     Выход:  нет
@@ -184,7 +188,7 @@ def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     if not glob.is_db_open():
         return "break"
     win = tk.Toplevel(root)
-    win.title("Выберете стобцы")
+    win.title("Выберите стобцы")
     glob.columns_selection = {k: v
                               for k in constants.origin_columns
                               for v in [tk.BooleanVar() for x in range(len(glob.constants.origin_columns))]
@@ -216,7 +220,7 @@ def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
 
 def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
     Вход:   объект главного окна,
             объект растягиваемого виджета,
@@ -233,7 +237,7 @@ def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
 
 def workspace_onclick_event(root, event, mode: str):
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   обработчик события нажатия на рабочее пространство таблицы данных
         Вход:   объект главного окна,
                 информация события,
@@ -258,14 +262,14 @@ def workspace_onclick_event(root, event, mode: str):
 
 def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   создание фрейма с приглашением
         Вход:   объект растягивающегося виджета,
         Выход:  фрейм с приглашением
     """
     # label приглашение к выбору
     pls_select_frame4check = tk.Frame(pane, bg="white")
-    lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберете базу данных", bg="white")
+    lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберите базу данных", bg="white")
     lbl_select_pls.pack(expand=True, fill="both")
     return pls_select_frame4check
 
@@ -277,7 +281,6 @@ def show_form(root, pane, selector, form: str, save):
         ans = err.yes_no("Сохранить изменения?")
         if ans:
             save()
-    glob.selected_form = form
     if form == "Общий вид":
         glob.columns = constants.origin_columns
     elif form == "Вид первый":
@@ -289,13 +292,104 @@ def show_form(root, pane, selector, form: str, save):
 
     open_base(root, pane, glob.current_base_list_id)
 
+
+def select_statistics_event(root: tk.Tk, pane: ttk.Panedwindow):
+    """
+          Автор: Подкопаева П. 
+          Цель:   открывает окно для выбора данных, для которых нужно показать общую статистику
+          Вход:   главное окно, растягивающийся виджет
+          Выход:  нет
+    """
+    # открыта ли база?
+    if not glob.is_db_open():
+        return "break"
+
+    win = tk.Toplevel(root)
+    win.title("Выбор")
+    win.geometry("400x400+500+200")
+
+    background = tk.Frame(win, bg="#F8F8FF")
+    background.place(x=0, y=0, relwidth=1, relheight=1)
+
+    lang = tk.StringVar()
+
+    win.geometry("400x400+500+300")
+    lbl = tk.Label(win)
+    lbl.configure(bg="#F8F8FF", text="Выберите данные для общей статистики")
+    lbl.place(relx=0.05, rely=0.05)
+
+    Elevation_checkbutton = tk.Radiobutton(background, text="Высота", value="Elevation", bg="#F8F8FF", variable=lang)
+    Elevation_checkbutton.place(relx=0.25, rely=0.1)
+    # Elevation_checkbutton.grid(row=1, column=0, sticky='W')
+    # Elevation_checkbutton.pack()
+
+    DEATHS_checkbutton = tk.Radiobutton(background, text="Количество смертей", value="DEATHS",
+                                        variable=lang, bg="#F8F8FF")
+    DEATHS_checkbutton.place(relx=0.25, rely=0.2)
+    # DEATHS_checkbutton.grid(row=2, column=0, sticky='W')
+    # DEATHS_checkbutton.pack()
+
+    DAMAGE_checkbutton = tk.Radiobutton(background, text="Ущерб в млн долларов", value="DAMAGE_MILLIONS_DOLLARS",
+                                        variable=lang, bg="#F8F8FF")
+    DAMAGE_checkbutton.place(relx=0.25, rely=0.3)
+    # DAMAGE_checkbutton.grid(row=3, column=0, sticky='W')
+    # DAMAGE_checkbutton.pack()
+
+    MISSING_checkbutton = tk.Radiobutton(background, text="Количество пропавших", value="MISSING",
+                                         variable=lang, bg="#F8F8FF")
+    MISSING_checkbutton.place(relx=0.25, rely=0.4)
+    # MISSING_checkbutton.grid(row=4, column=0, sticky='W')
+    # MISSING_checkbutton.pack()
+
+    INJURIES_checkbutton = tk.Radiobutton(background, text="Количество раненных", value="INJURIES",
+                                          variable=lang, bg="#F8F8FF")
+    INJURIES_checkbutton.place(relx=0.25, rely=0.5)
+    # INJURIES_checkbutton.grid(row=5, column=0, sticky='W')
+    # INJURIES_checkbutton.pack()
+
+    apply_button = tk.Button(background, text="Выбрать", font=3, bg="#B0E0E6")
+    apply_button.bind("<Button-1>", lambda *args: stat.statistics_base(root, pane, lang.get()))
+    apply_button.place(relx=0.5, rely=0.6, relheight=0.1, relwidth=0.25)
+    background.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+
+
+def analysis_window_event(root: tk.Tk, pane: ttk.Panedwindow):
+    if not glob.is_db_open():
+        return "break"
+
+    win = tk.Toplevel(root)
+    win.title("Выбор")
+    win.geometry("400x400+500+200")
+
+    background = tk.Frame(win, bg="#F8F8FF")
+    background.place(x=0, y=0, relwidth=1, relheight=1)
+
+    backgroundlabel = tk.Label(background, bg="#F8F8FF")
+    backgroundlabel.place(relx=0.025, rely=0.025, relwidth=0.95, relheight=0.95)
+
+    button_statistics = tk.Button(background, text='Сводная таблица', width=20, height=2, font=11, bg="#FFEFD5", )
+    button_statistics.bind("<Button-1>", lambda *args: tb.choice_table(root, pane))
+    button_statistics.place(relx=0.25, rely=0.15, relheight=0.1, relwidth=0.5)
+
+    button_map = tk.Button(background, bg="#FFE4B5", text='Построение карты', font=11, width=20, height=2)
+    button_map.bind("<Button-1>", lambda *args: mp.choice_map(root, pane))
+    button_map.place(relx=0.25, rely=0.45, relheight=0.1, relwidth=0.5)
+
+    button_graphics = tk.Button(background, bg="#FFDAB9", text='Построение диаграмм\n и графиков', font=11, width=20,
+                                height=2)
+    button_graphics.bind("<Button-1>", lambda *args: stat.graphics_choice(root, pane))
+    button_graphics.place(relx=0.2, rely=0.75, relheight=0.2, relwidth=0.65)
+
+    background.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+
+
 #  ---------------------------------------------------------------------------------------
 # frame4checks =======================================================================================
 
 
 def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons: glob.Icons):
     """
-    Автор:
+    Автор: Ковязин В., Подкопаева П. 
     Цель:   создание панели инструментов в главном окне
     Вход:   объект главного окна,
             объект растягивающегося виджета,
@@ -313,21 +407,54 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0, bg="white")
     select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
     close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0, bg="white")
-    table_normal_forms_selector = ttk.Combobox(tools_frame4check, state='readonly', values=["Общий вид", "Вид первый", "Вид второй", "Вид третий"])
+    table_normal_forms_selector = ttk.Combobox(tools_frame4check, state='readonly',
+                                               values=["Общий вид", "Вид первый", "Вид второй", "Вид третий"])
+
+    statistics_select = tk.Button(tools_frame4check, text="Общая статистика за период наблюдений", relief="raised",
+                                  bd=2, bg="white")
+    analysis_window = tk.Button(tools_frame4check, text="Анализ данных", relief="raised", bd=2, bg="#98FB98")
+
+    # button_new = tk.Frame(tools_frame4check, bg="#B0E0E6")
+    # button_new.place(relx=0.025, rely=0.13, relwidth=0.95, relheight=0.125)
+
+    # search = tk.Frame(button_new, bg="#F8F8FF")
+    # search.place(relwidth=1, relheight=0.495)
+
+    # search_1 = tk.Label(search, bg="#F8F8FF")
+    # search_1.place(rely=0.025, relwidth=0.3625, relheight=0.95)
+
+    global CHOSEN_option, GL_REQUEST
+
+    GL_REQUEST = tk.StringVar(value="Поиск")
+    request = tk.Entry(tools_frame4check, textvariable=GL_REQUEST, relief="raised", bd=2)
+    request_menu = ttk.Combobox(tools_frame4check, state='readonly',
+                                values=["Без фильтра", "По названию", "По типу", "По стране", "По цунами",
+                                        "По землетрясению"])
+
+    button_save_filter = tk.Button(tools_frame4check, relief="groove", bd=0, bg="white")
+
+    analysis_window.bind("<Button-1>", lambda *args: analysis_window_event(root, pane))
+    statistics_select.bind("<Button-1>", lambda *args: select_statistics_event(root, pane))
+
     table_normal_forms_selector.current(0)
+    request_menu.current(0)
     add_button.bind("<Button-1>", create)
     save_button.bind("<Button-1>", save)
     edit_button.bind("<Button-1>", lambda *args: edit_event(root))
     load_button.bind("<Button-1>", load)
-    add_field_button.bind("<Button-1>", lambda *args: add_inf(root))
+    add_field_button.bind("<Button-1>", lambda *args: add_inf(root, table_normal_forms_selector.get(), save))
     del_field_button.bind("<Button-1>", lambda *args: remove_inf())
     table_normal_forms_selector.bind("<<ComboboxSelected>>",
                                      lambda event: show_form(root, pane,
                                                              table_normal_forms_selector,
                                                              table_normal_forms_selector.get(),
                                                              save))
+    request_menu.bind("<<ComboboxSelected>>",
+                      lambda event: search_call(root, pane, request_menu, request_menu.get()))
+
     select_columns.bind("<Button-1>", lambda *args: select_columns_event(root, pane))
     close_button.bind("<Button-1>", lambda *args: close_event(pane, save))
+    # button_save_filter.bind("<Button-1>", lambda *args: )
 
     add_button.grid(row=0, column=0, padx=2, pady=2, sticky="NSEW")
     load_button.grid(row=0, column=1, padx=2, pady=2, sticky="NSEW")
@@ -338,13 +465,47 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     table_normal_forms_selector.grid(row=0, column=6, padx=2, pady=2, sticky="NSEW")
     select_columns.grid(row=0, column=7, padx=2, pady=2, sticky="NSEW")
     close_button.grid(row=0, column=8, padx=2, pady=2, sticky="NSEW")
+    button_save_filter.grid(row=0, column=18, padx=2, pady=2, sticky="NSEW")
+    statistics_select.grid(row=0, column=16, padx=2, pady=2, sticky="NSEW")
+    analysis_window.grid(row=2, column=16, padx=2, pady=2, sticky="NSEW")
+    request.grid(row=0, column=17, padx=2, pady=2, sticky="NSEW")
+    request_menu.grid(row=2, column=17, padx=2, pady=2, sticky="NSEW")
     tools_frame4check.grid_rowconfigure(0, minsize=20)
     tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
+def search_call(root: tk.Tk, pane: ttk.Panedwindow, selector, option: str):
+    if not glob.is_db_open():
+        selector.current(0)
+    # if not glob.is_saved():
+    #  ans = err.yes_no("Сохранить изменения?")
+    #  if ans:
+    #   save()
+    searchResult = {}
+    if option == "Без фильтра":
+        glob.columns = constants.origin_columns
+    elif option == "По названию":
+        searchResult = hand_base.search_name(hand_base.bd, GL_REQUEST)
+    elif option == "По типу":
+        searchResult = hand_base.search_type(hand_base.bd, GL_REQUEST)
+    elif option == "По стране":
+        searchResult = hand_base.search_country(hand_base.bd, GL_REQUEST)
+    elif option == "По цунами":
+        searchResult = hand_base.search_TSU(hand_base.bd, GL_REQUEST)
+    elif option == "По землетрясению":
+        searchResult = hand_base.search_EQ(hand_base.bd, GL_REQUEST)
+
+
+# def Show_base():
+
+# win = tk.Toplevel(root, bg="#F8F8FF")
+# win.title("Статистические данные: " + string)
+# win.geometry('600x400+500+300')
+
+
 def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   создание виджета Listbox для выбора базы
     Вход:   объект главного окна,
             объект растягивающегося виджета
@@ -364,7 +525,7 @@ def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
 
 def create_menu(win: tk.Tk, load):
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   создает меню на главном окне
     Вход:   объект главного окна, объект функции load
     Выход:  нет
@@ -387,7 +548,7 @@ def create_menu(win: tk.Tk, load):
 
 def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
-        Автор:
+        Автор: Ковязин В.
         Цель:   создает рабочее пространство таблицы
         Вход:   объект главного окна,
                 объект растягивающегося виджета,
@@ -425,7 +586,7 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
 #  =======================================================================================
 
 
-def add_inf(win: tk.Tk):
+def add_inf(win: tk.Tk, form: str, save):
     """
         Автор:Подкопаева П.
         Цель: Добавление новых элементов в базу данных (окно)
@@ -438,125 +599,281 @@ def add_inf(win: tk.Tk):
     root = tk.Toplevel(win)
     root.title("Окно ввода данных")
 
-    Year = tk.IntVar()
-    Year_label = tk.Label(root, text="Год извержения:")
-    Year_label.grid(row=0, column=0, sticky="w")
-    Year_entry = tk.Entry(root, textvariable=Year)
-    Year_entry.grid(row=0, column=1, padx=5, pady=5)
+    if form == "Общий вид":
+        Year = tk.IntVar()
+        Year_label = tk.Label(root, text="Год извержения:")
+        Year_label.grid(row=0, column=0, sticky="w")
+        Year_entry = tk.Entry(root, textvariable=Year)
+        Year_entry.grid(row=0, column=1, padx=5, pady=5)
 
-    cmb_month = ttk.Combobox(root)
-    Month_label = tk.Label(root, text="Месяц извержения:")
-    Month_label.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-    cmb_month['values'] = ('1', '2', '3', '4', '5', '6', '7',
-                           '8', '9', '10', '11', '12')
-    cmb_month.current(0)
-    cmb_month.grid(column=1, row=1)
+        cmb_month = ttk.Combobox(root)
+        Month_label = tk.Label(root, text="Месяц извержения:")
+        Month_label.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        cmb_month['values'] = ('1', '2', '3', '4', '5', '6', '7',
+                               '8', '9', '10', '11', '12')
+        cmb_month.current(0)
+        cmb_month.grid(column=1, row=1)
 
-    Day = tk.IntVar()
-    Day_label = tk.Label(root, text="День извержения:")
-    Day_label.grid(row=2, column=0, sticky="w")
-    Day_entry = tk.Entry(root, textvariable=Day)
-    Day_entry.grid(row=2, column=1, padx=5, pady=5)
+        Day = tk.IntVar()
+        Day_label = tk.Label(root, text="День извержения:")
+        Day_label.grid(row=2, column=0, sticky="w")
+        Day_entry = tk.Entry(root, textvariable=Day)
+        Day_entry.grid(row=2, column=1, padx=5, pady=5)
 
-    name = tk.StringVar()
-    name_label = tk.Label(root, text="Название вулкана:")
-    name_label.grid(row=3, column=0, sticky="w")
-    name_entry = tk.Entry(root, textvariable=name)
-    name_entry.grid(row=3, column=1, padx=5, pady=5)
+        name = tk.StringVar()
+        name_label = tk.Label(root, text="Название вулкана:")
+        name_label.grid(row=3, column=0, sticky="w")
+        name_entry = tk.Entry(root, textvariable=name)
+        name_entry.grid(row=3, column=1, padx=5, pady=5)
 
-    Type = tk.StringVar()
-    Type_label = tk.Label(root, text="Тип вулкана:")
-    Type_label.grid(row=4, column=0, sticky="w")
-    Type_entry = tk.Entry(root, textvariable=Type)
-    Type_entry.grid(row=4, column=1, padx=5, pady=5)
+        Type = tk.StringVar()
+        Type_label = tk.Label(root, text="Тип вулкана:")
+        Type_label.grid(row=4, column=0, sticky="w")
+        Type_entry = tk.Entry(root, textvariable=Type)
+        Type_entry.grid(row=4, column=1, padx=5, pady=5)
 
-    Height = tk.IntVar()
-    Height_label = tk.Label(root, text="Высота вулкана (в метрах):")
-    Height_label.grid(row=5, column=0, sticky="w")
-    Height_entry = tk.Entry(root, textvariable=Height)
-    Height_entry.grid(row=5, column=1, padx=5, pady=5)
+        Height = tk.IntVar()
+        Height_label = tk.Label(root, text="Высота вулкана (в метрах):")
+        Height_label.grid(row=5, column=0, sticky="w")
+        Height_entry = tk.Entry(root, textvariable=Height)
+        Height_entry.grid(row=5, column=1, padx=5, pady=5)
 
-    country = tk.StringVar()
-    country_label = tk.Label(root, text="Страна:")
-    country_label.grid(row=6, column=0, sticky="w")
-    country_entry = tk.Entry(root, textvariable=country)
-    country_entry.grid(row=6, column=1, padx=5, pady=5)
+        country = tk.StringVar()
+        country_label = tk.Label(root, text="Страна:")
+        country_label.grid(row=6, column=0, sticky="w")
+        country_entry = tk.Entry(root, textvariable=country)
+        country_entry.grid(row=6, column=1, padx=5, pady=5)
 
-    location = tk.StringVar()
-    location_label = tk.Label(root, text="Расположение вулкана:")
-    location_label.grid(row=7, column=0, sticky="w")
-    location_entry = tk.Entry(root, textvariable=location)
-    location_entry.grid(row=7, column=1, padx=5, pady=5)
+        location = tk.StringVar()
+        location_label = tk.Label(root, text="Расположение вулкана:")
+        location_label.grid(row=7, column=0, sticky="w")
+        location_entry = tk.Entry(root, textvariable=location)
+        location_entry.grid(row=7, column=1, padx=5, pady=5)
 
-    Latitude = tk.IntVar()
-    Latitude_label = tk.Label(root, text="Широта:")
-    Latitude_label.grid(row=8, column=0, sticky="w")
-    Latitude_entry = tk.Entry(root, textvariable=Latitude)
-    Latitude_entry.grid(row=8, column=1, padx=5, pady=5)
+        Latitude = tk.IntVar()
+        Latitude_label = tk.Label(root, text="Широта:")
+        Latitude_label.grid(row=8, column=0, sticky="w")
+        Latitude_entry = tk.Entry(root, textvariable=Latitude)
+        Latitude_entry.grid(row=8, column=1, padx=5, pady=5)
 
-    Longtitude = tk.IntVar()
-    Longtitude_label = tk.Label(root, text="Долгота:")
-    Longtitude_label.grid(row=9, column=0, sticky="w")
-    Longtitude_entry = tk.Entry(root, textvariable=Longtitude)
-    Longtitude_entry.grid(row=9, column=1, padx=5, pady=5)
+        Longtitude = tk.IntVar()
+        Longtitude_label = tk.Label(root, text="Долгота:")
+        Longtitude_label.grid(row=9, column=0, sticky="w")
+        Longtitude_entry = tk.Entry(root, textvariable=Longtitude)
+        Longtitude_entry.grid(row=9, column=1, padx=5, pady=5)
 
-    cmb_VEI = ttk.Combobox(root)
-    VEI_label = tk.Label(root, text="Индекс взрывоопасности:")
-    VEI_label.grid(row=10, column=0, sticky="w", padx=5, pady=5)
-    cmb_VEI['values'] = ('0', '1', '2', '3', '4', '5', '6', '7', '8')
-    cmb_VEI.current(0)
-    cmb_VEI.grid(column=1, row=10)
+        cmb_VEI = ttk.Combobox(root)
+        VEI_label = tk.Label(root, text="Индекс взрывоопасности:")
+        VEI_label.grid(row=10, column=0, sticky="w", padx=5, pady=5)
+        cmb_VEI['values'] = ('0', '1', '2', '3', '4', '5', '6', '7', '8')
+        cmb_VEI.current(0)
+        cmb_VEI.grid(column=1, row=10)
 
-    cmb_agent = ttk.Combobox(root)
-    Agent_label = tk.Label(root, text="Причина извержения:")
-    Agent_label.grid(row=10, column=3, sticky="w", padx=5, pady=5)
-    cmb_agent['values'] = ('A', 'E', 'F', 'G', 'I', 'L', 'M', 'm', 'P', 'S', 'T', 'W')
-    # inf_button = Button(root, text="Информация о причинах", command=mb.showinfo(
-    # "Информация", "Здесь будет информация с расшифровкой причин").grid(row = 11, column = 5, padx=5, pady=5, sticky="e"))
-    cmb_agent.current(0)
-    cmb_agent.grid(column=4, row=10)
+        cmb_agent = ttk.Combobox(root)
+        Agent_label = tk.Label(root, text="Причина извержения:")
+        Agent_label.grid(row=10, column=3, sticky="w", padx=5, pady=5)
+        cmb_agent['values'] = ('A', 'E', 'F', 'G', 'I', 'L', 'M', 'm', 'P', 'S', 'T', 'W')
+        # inf_button = Button(root, text="Информация о причинах", command=mb.showinfo(
+        # "Информация", "Здесь будет информация с расшифровкой причин").grid(row = 11, column = 5, padx=5, pady=5, sticky="e"))
+        cmb_agent.current(0)
+        cmb_agent.grid(column=4, row=10)
 
-    Deaths = tk.IntVar()
-    Deaths_label = tk.Label(root, text="Количество смертей:")
-    Deaths_label.grid(row=13, column=0, sticky="w")
-    Deaths_entry = tk.Entry(root, textvariable=Deaths)
-    Deaths_entry.grid(row=13, column=1, padx=5, pady=5)
+        Deaths = tk.IntVar()
+        Deaths_label = tk.Label(root, text="Количество смертей:")
+        Deaths_label.grid(row=13, column=0, sticky="w")
+        Deaths_entry = tk.Entry(root, textvariable=Deaths)
+        Deaths_entry.grid(row=13, column=1, padx=5, pady=5)
 
-    Injured = tk.IntVar()
-    Injured_label = tk.Label(root, text="Количество пострадавших:")
-    Injured_label.grid(row=14, column=0, sticky="w")
-    Injured_entry = tk.Entry(root, textvariable=Injured)
-    Injured_entry.grid(row=14, column=1, padx=5, pady=5)
+        Injured = tk.IntVar()
+        Injured_label = tk.Label(root, text="Количество пострадавших:")
+        Injured_label.grid(row=14, column=0, sticky="w")
+        Injured_entry = tk.Entry(root, textvariable=Injured)
+        Injured_entry.grid(row=14, column=1, padx=5, pady=5)
 
-    Lost = tk.IntVar()
-    Lost_label = tk.Label(root, text="Количество пропавших:")
-    Lost_label.grid(row=15, column=0, sticky="w")
-    Lost_entry = tk.Entry(root, textvariable=Lost)
-    Lost_entry.grid(row=15, column=1, padx=5, pady=5)
+        Lost = tk.IntVar()
+        Lost_label = tk.Label(root, text="Количество пропавших:")
+        Lost_label.grid(row=15, column=0, sticky="w")
+        Lost_entry = tk.Entry(root, textvariable=Lost)
+        Lost_entry.grid(row=15, column=1, padx=5, pady=5)
 
-    Damage = tk.IntVar()
-    Damage_label = tk.Label(root, text="Ущерб в млн долларов:")
-    Damage_label.grid(row=16, column=0, sticky="w")
-    Damage_entry = tk.Entry(root, textvariable=Damage)
-    Damage_entry.grid(row=16, column=1, padx=5, pady=5)
+        Damage = tk.IntVar()
+        Damage_label = tk.Label(root, text="Ущерб в млн долларов:")
+        Damage_label.grid(row=16, column=0, sticky="w")
+        Damage_entry = tk.Entry(root, textvariable=Damage)
+        Damage_entry.grid(row=16, column=1, padx=5, pady=5)
 
-    TSU = tk.BooleanVar()
-    TSU.set(False)
-    TSU1 = ttk.Checkbutton(root, text="Было цунами?", var=TSU)
-    TSU1.grid(column=0, row=17)
+        TSU = tk.BooleanVar()
+        TSU.set(False)
+        TSU1 = ttk.Checkbutton(root, text="Было цунами?", var=TSU)
+        TSU1.grid(column=0, row=17)
 
-    EQ = tk.BooleanVar()
-    EQ.set(False)
-    EQ1 = ttk.Checkbutton(root, text="Было землетрясение?", var=EQ)
-    EQ1.grid(column=2, row=17)
+        EQ = tk.BooleanVar()
+        EQ.set(False)
+        EQ1 = ttk.Checkbutton(root, text="Было землетрясение?", var=EQ)
+        EQ1.grid(column=2, row=17)
 
-    list4values = {'Year': Year, 'Month': cmb_month, 'Day': Day, 'Name': name, 'Location': location, 'Country': country,
-                   'Latitude': Latitude, 'Longitude': Longtitude, 'Elevation': Height, 'Type': Type, 'VEI': cmb_VEI,
-                   'Agent': cmb_agent, 'DEATHS': Deaths, 'INJURIES': Injured, 'MISSING': Lost,
-                   'DAMAGE_MILLIONS_DOLLARS': Damage, 'TSU': TSU, 'EQ': EQ}
-    message_button = tk.Button(root, text="Ввести",
-                               command=lambda *args: accept(root, list4values))
-    message_button.grid(row=19, column=3, padx=5, pady=5, sticky="e")
+        list4values = {'Year': Year, 'Month': cmb_month, 'Day': Day, 'Name': name, 'Location': location,
+                       'Country': country,
+                       'Latitude': Latitude, 'Longitude': Longtitude, 'Elevation': Height, 'Type': Type, 'VEI': cmb_VEI,
+                       'Agent': cmb_agent, 'DEATHS': Deaths, 'INJURIES': Injured, 'MISSING': Lost,
+                       'DAMAGE_MILLIONS_DOLLARS': Damage, 'TSU': TSU, 'EQ': EQ}
+        message_button = tk.Button(root, text="Ввести",
+                                   command=lambda *args: accept(root, list4values))
+        message_button.grid(row=19, column=3, padx=5, pady=5, sticky="e")
+
+    elif form == "Вид первый":
+
+        name = tk.StringVar()
+        name_label = tk.Label(root, text="Название вулкана:")
+        name_label.grid(row=1, column=0, sticky="w")
+        name_entry = tk.Entry(root, textvariable=name)
+        name_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        Type = tk.StringVar()
+        Type_label = tk.Label(root, text="Тип вулкана:")
+        Type_label.grid(row=2, column=0, sticky="w")
+        Type_entry = tk.Entry(root, textvariable=Type)
+        Type_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        Height = tk.IntVar()
+        Height_label = tk.Label(root, text="Высота вулкана (в метрах):")
+        Height_label.grid(row=3, column=0, sticky="w")
+        Height_entry = tk.Entry(root, textvariable=Height)
+        Height_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        Latitude = tk.IntVar()
+        Latitude_label = tk.Label(root, text="Широта:")
+        Latitude_label.grid(row=4, column=0, sticky="w")
+        Latitude_entry = tk.Entry(root, textvariable=Latitude)
+        Latitude_entry.grid(row=4, column=1, padx=5, pady=5)
+
+        Longtitude = tk.IntVar()
+        Longtitude_label = tk.Label(root, text="Долгота:")
+        Longtitude_label.grid(row=5, column=0, sticky="w")
+        Longtitude_entry = tk.Entry(root, textvariable=Longtitude)
+        Longtitude_entry.grid(row=5, column=1, padx=5, pady=5)
+
+        list4values = {'Name': name, 'Latitude': Latitude, 'Longitude': Longtitude, 'Elevation': Height, 'Type': Type}
+        message_button = tk.Button(root, text="Ввести",
+                                   command=lambda *args: accept(root, list4values))
+        message_button.grid(row=7, column=3, padx=5, pady=5, sticky="e")
+
+    elif form == "Вид второй":
+
+        country = tk.StringVar()
+        country_label = tk.Label(root, text="Страна:")
+        country_label.grid(row=1, column=0, sticky="w")
+        country_entry = tk.Entry(root, textvariable=country)
+        country_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        location = tk.StringVar()
+        location_label = tk.Label(root, text="Расположение вулкана:")
+        location_label.grid(row=2, column=0, sticky="w")
+        location_entry = tk.Entry(root, textvariable=location)
+        location_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        Latitude = tk.IntVar()
+        Latitude_label = tk.Label(root, text="Широта:")
+        Latitude_label.grid(row=3, column=0, sticky="w")
+        Latitude_entry = tk.Entry(root, textvariable=Latitude)
+        Latitude_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        Longtitude = tk.IntVar()
+        Longtitude_label = tk.Label(root, text="Долгота:")
+        Longtitude_label.grid(row=4, column=0, sticky="w")
+        Longtitude_entry = tk.Entry(root, textvariable=Longtitude)
+        Longtitude_entry.grid(row=4, column=1, padx=5, pady=5)
+
+        list4values = {'Location': location, 'Country': country, 'Latitude': Latitude, 'Longitude': Longtitude}
+        message_button = tk.Button(root, text="Ввести",
+                                   command=lambda *args: accept(root, list4values))
+        message_button.grid(row=6, column=3, padx=5, pady=5, sticky="e")
+
+    elif form == "Вид третий":
+
+        Year = tk.IntVar()
+        Year_label = tk.Label(root, text="Год извержения:")
+        Year_label.grid(row=0, column=0, sticky="w")
+        Year_entry = tk.Entry(root, textvariable=Year)
+        Year_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        cmb_month = ttk.Combobox(root)
+        Month_label = tk.Label(root, text="Месяц извержения:")
+        Month_label.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        cmb_month['values'] = ('1', '2', '3', '4', '5', '6', '7',
+                               '8', '9', '10', '11', '12')
+        cmb_month.current(0)
+        cmb_month.grid(column=1, row=1)
+
+        Day = tk.IntVar()
+        Day_label = tk.Label(root, text="День извержения:")
+        Day_label.grid(row=2, column=0, sticky="w")
+        Day_entry = tk.Entry(root, textvariable=Day)
+        Day_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        name = tk.StringVar()
+        name_label = tk.Label(root, text="Название вулкана:")
+        name_label.grid(row=3, column=0, sticky="w")
+        name_entry = tk.Entry(root, textvariable=name)
+        name_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        cmb_VEI = ttk.Combobox(root)
+        VEI_label = tk.Label(root, text="Индекс взрывоопасности:")
+        VEI_label.grid(row=4, column=0, sticky="w", padx=5, pady=5)
+        cmb_VEI['values'] = ('0', '1', '2', '3', '4', '5', '6', '7', '8')
+        cmb_VEI.current(0)
+        cmb_VEI.grid(column=1, row=4)
+
+        cmb_agent = ttk.Combobox(root)
+        Agent_label = tk.Label(root, text="Причина извержения:")
+        Agent_label.grid(row=4, column=3, sticky="w", padx=5, pady=5)
+        cmb_agent['values'] = ('A', 'E', 'F', 'G', 'I', 'L', 'M', 'm', 'P', 'S', 'T', 'W')
+        # inf_button = Button(root, text="Информация о причинах", command=mb.showinfo(
+        # "Информация", "Здесь будет информация с расшифровкой причин").grid(row = 11, column = 5, padx=5, pady=5, sticky="e"))
+        cmb_agent.current(0)
+        cmb_agent.grid(column=4, row=4)
+
+        Deaths = tk.IntVar()
+        Deaths_label = tk.Label(root, text="Количество смертей:")
+        Deaths_label.grid(row=5, column=0, sticky="w")
+        Deaths_entry = tk.Entry(root, textvariable=Deaths)
+        Deaths_entry.grid(row=5, column=1, padx=5, pady=5)
+
+        Injured = tk.IntVar()
+        Injured_label = tk.Label(root, text="Количество пострадавших:")
+        Injured_label.grid(row=6, column=0, sticky="w")
+        Injured_entry = tk.Entry(root, textvariable=Injured)
+        Injured_entry.grid(row=6, column=1, padx=5, pady=5)
+
+        Lost = tk.IntVar()
+        Lost_label = tk.Label(root, text="Количество пропавших:")
+        Lost_label.grid(row=7, column=0, sticky="w")
+        Lost_entry = tk.Entry(root, textvariable=Lost)
+        Lost_entry.grid(row=7, column=1, padx=5, pady=5)
+
+        Damage = tk.IntVar()
+        Damage_label = tk.Label(root, text="Ущерб в млн долларов:")
+        Damage_label.grid(row=8, column=0, sticky="w")
+        Damage_entry = tk.Entry(root, textvariable=Damage)
+        Damage_entry.grid(row=8, column=1, padx=5, pady=5)
+
+        TSU = tk.BooleanVar()
+        TSU.set(False)
+        TSU1 = ttk.Checkbutton(root, text="Было цунами?", var=TSU)
+        TSU1.grid(column=0, row=9)
+
+        EQ = tk.BooleanVar()
+        EQ.set(False)
+        EQ1 = ttk.Checkbutton(root, text="Было землетрясение?", var=EQ)
+        EQ1.grid(column=2, row=9)
+
+        list4values = {'Year': Year, 'Month': cmb_month, 'Day': Day, 'Name': name, 'VEI': cmb_VEI,
+                       'Agent': cmb_agent, 'DEATHS': Deaths, 'INJURIES': Injured, 'MISSING': Lost,
+                       'DAMAGE_MILLIONS_DOLLARS': Damage, 'TSU': TSU, 'EQ': EQ}
+
+        message_button = tk.Button(root, text="Ввести",
+                                   command=lambda *args: accept(root, list4values))
+        message_button.grid(row=11, column=3, padx=5, pady=5, sticky="e")
 
 
 def accept(root, list4values):

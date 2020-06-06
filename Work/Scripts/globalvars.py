@@ -23,8 +23,6 @@ columns: Columns = constants.origin_columns
     Программа будет автоматически отображать новые столбцы и убирать удаленные.  
 """
 
-selected_form: str = 'Общий вид'
-
 work_list: BaseRecord = {}
 """
     Словарь со значениями (Имя БД: объект БД).
@@ -69,7 +67,7 @@ sort = True
 
 def is_saved() -> bool:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: проверяет, сохранена ли база
     Вход: нет
     Выход: true, false
@@ -82,7 +80,7 @@ def is_saved() -> bool:
 
 def is_db_open() -> bool:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: проверка, окрыта ли база
     Вход: Нет
     Выход: true, false
@@ -95,7 +93,7 @@ def is_db_open() -> bool:
 
 def delete_current_base():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   удаляет базу из программы
     Вход:  нет
     Выход:  нет
@@ -110,7 +108,7 @@ def delete_current_base():
 
 def mark_changes():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   убирает пометку в имени текущей базы наличие несохраненных изменений
     Вход:  нет
     Выход:  нет
@@ -122,7 +120,7 @@ def mark_changes():
 
 def unmark_changes():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   помечает в имени текущей базы наличие несохраненных изменений
     Вход:  нет
     Выход:  нет
@@ -134,7 +132,7 @@ def unmark_changes():
 
 def correct_base_values(base: DataFrame) -> DataFrame:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель:   при добавлении в таблицу измененных пользователем данных могут возникнуть nan значения,
             их мы меняем на пустые строки или на 0, так же nan меняет типы столбцов на другой,
             здесь мы обратно приводим тип столбцов к нужному
@@ -144,7 +142,7 @@ def correct_base_values(base: DataFrame) -> DataFrame:
     base = base.replace('', np.nan)
     base[['Year', 'Month', 'Day']] = base[['Year', 'Month', 'Day']].replace(np.nan, 0)
     base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = base[
-        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, "")
+        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, " ")
     base = base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32',
                         'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
                         'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',
@@ -154,15 +152,15 @@ def correct_base_values(base: DataFrame) -> DataFrame:
           'EQ']] = base[['Name', 'Location', 'Country',
                          'Type', 'Agent', 'TSU',
                          'EQ']].astype(str)
-    base = base.astype({'Name': 'string', 'Location': 'string', 'Country': 'string',
-                        'Type': 'string', 'Agent': 'string', 'TSU': 'string',
-                        'EQ': 'string'})
+    base = base.astype({'Name': 'str', 'Location': 'str', 'Country': 'str',
+                        'Type': 'str', 'Agent': 'str', 'TSU': 'str',
+                        'EQ': 'str'})
     return base
 
 
 def update_workspace():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: обновляет содержимое рабочего пространства
     Вход: нет
     Выход: нет
@@ -178,7 +176,7 @@ def update_workspace():
 
 def clear_workspace():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: очищает рабочее пространство
     Вход: нет
     Выход: нет
@@ -191,7 +189,7 @@ def clear_workspace():
 
 def update_list():
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: заново добавляет текущую базу в base_list
     Вход: нет
     Выход: нет

@@ -13,7 +13,7 @@ glob.work_list['Volcano Eruption'] = glob.correct_base_values(bd)
 
 def read_base(path: str) -> str:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: загружает базу из файла
     Вход: путь
     Выход: новая база
@@ -38,7 +38,7 @@ def read_base(path: str) -> str:
 
 def create_base(path: str) -> str:
     """
-    Автор:
+    Автор: Ковязин В.
     Цель: создает новую чистую базу
     Вход: путь
     Выход: новая база
@@ -58,12 +58,22 @@ def create_base(path: str) -> str:
 
 def save_base() -> None:
     """
-        Автор:
+        Автор: Ковязин В.
         Цель: сохраняем текущую базу
         Вход: нет
         Выход: нет
         """
     glob.work_list[glob.current_base_name].to_csv("../Data/" + glob.current_base_name + ".csv", index=False)
+
+
+def search_name(data_base, value):
+    result = {}
+    i = 0
+    for base in data_base:
+        if value in data_base[base]["Name"]:
+            result[i] = data_base[base]
+            i += 1
+    return result
 
 
 def search_type(data_base, value):
@@ -109,6 +119,26 @@ def search_location(data_base, value):
     i = 0
     for base in data_base:
         if value in data_base[base]["Country"]:
+            result[i] = data_base[base]
+            i += 1
+    return result
+
+
+def search_TSU(data_base, value):
+    result = {}
+    i = 0
+    for base in data_base:
+        if value in data_base[base]["TSU"]:
+            result[i] = data_base[base]
+            i += 1
+    return result
+
+
+def search_EQ(data_base, value):
+    result = {}
+    i = 0
+    for base in data_base:
+        if value in data_base[base]["EQ"]:
             result[i] = data_base[base]
             i += 1
     return result
