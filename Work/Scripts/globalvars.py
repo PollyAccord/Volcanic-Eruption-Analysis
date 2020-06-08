@@ -141,8 +141,12 @@ def correct_base_values(base: DataFrame) -> DataFrame:
     """
     base = base.replace('', np.nan)
     base[['Year', 'Month', 'Day']] = base[['Year', 'Month', 'Day']].replace(np.nan, 0)
-    base[['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']] = base[
-        ['Name', 'Location', 'Country', 'Type', 'Agent', 'TSU', 'EQ']].replace(np.nan, " ")
+    base[['Name', 'Location', 'Country', 'Type', 'Agent']] = base[
+        ['Name', 'Location', 'Country', 'Type', 'Agent']].replace(np.nan, " ")
+    base[['TSU']] = base[['TSU']].replace('TSU', '+')
+    base[['EQ']] = base[['EQ']].replace('EQ', '+')
+    base[['TSU']] = base[['TSU']].replace(np.nan, '-')
+    base[['EQ']] = base[['EQ']].replace(np.nan, '-')
     base = base.astype({'Year': 'int32', 'Month': 'int32', 'Day': 'int32',
                         'Latitude': 'float64', 'Longitude': 'float64', 'VEI': 'float64',
                         'DEATHS': 'float64', 'INJURIES': 'float64', 'MISSING': 'float64',

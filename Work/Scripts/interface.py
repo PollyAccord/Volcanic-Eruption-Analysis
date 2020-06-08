@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import messagebox as mb
+from tkinter import messagebox as mb, filedialog
 
 import pandas as pd
 
@@ -275,6 +275,12 @@ def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
 
 
 def show_form(root, pane, selector, form: str, save):
+    """
+            Автор: Ковязин В.
+            Цель:
+            Вход:
+            Выход:  нет
+    """
     if not glob.is_db_open():
         selector.current(0)
     if not glob.is_saved():
@@ -381,6 +387,61 @@ def analysis_window_event(root: tk.Tk, pane: ttk.Panedwindow):
     button_graphics.place(relx=0.2, rely=0.75, relheight=0.2, relwidth=0.65)
 
     background.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+
+
+def save_report_event(table, columns, i):
+    data = pd.DataFrame(columns=columns)
+    for index in range(i):
+        data = data.append(table.set(index), ignore_index=True)
+    path = filedialog.asksaveasfilename(initialdir="../Data/",
+                                        filetypes=(("Database files", "*.csv"), ("All files", "*.*")))
+    if ".csv" not in path:
+        path += ".csv"
+    data.to_csv(path, index=False, encoding='cp1251')
+    return "break"
+
+
+def show_stat_report(root: tk.Tk, target: str):
+    win = tk.Toplevel(root)
+    win.title(target)
+    if target not in ['TSU', 'EQ']:
+        columns = ["Атрибут " + target, "Частота", "Процент от общего числа"]
+    else:
+        columns = ["Было ли " + ('цунами' if target == 'TSU' else 'землетрясение'),
+                   "Частота", "Процент от общего числа"]
+    table = ttk.Treeview(win, height=20, show='headings', columns=columns)
+    [table.heading('#' + str(x + 1), text=columns[x]) for x in range(3)]
+    freq, whole = stat.stat_report(root, target)
+    i = 0
+    for name, number in freq.items():
+        table.insert('', 'end', iid=i,
+                     values=[name, number, str(round((number / whole) * 100, 2)) + '%'])
+        i += 1
+    vsb = ttk.Scrollbar(win, orient="vertical", command=table.yview)
+    table.configure(yscrollcommand=vsb.set)
+
+    save_button = tk.Button(win, text='Сохранить')
+    save_button.bind("<Button-1>", lambda *args: save_report_event(table, columns, i))
+    vsb.pack(side='right', fill='both')
+    save_button.pack(side='top')
+    table.pack(side='top', fill='x')
+
+
+def stat_report_event(root: tk.Tk):
+    if not glob.is_db_open():
+        return "break"
+    win = tk.Toplevel(root)
+    win.title("Статический отчет")
+    win.geometry('300x300')
+    target = tk.StringVar()
+    dropdown = ttk.Combobox(win, values=constants.quality_columns, state='readonly',
+                            textvariable=target)
+    dropdown.current(0)
+    show_result = tk.Button(win, text="Показать")
+    show_result.bind("<Button-1>", lambda *args: show_stat_report(root, target.get()))
+    tk.Label(win, text="Атрибут").pack(side="top")
+    dropdown.pack(side="top")
+    show_result.pack(side="top")
 
 
 #  ---------------------------------------------------------------------------------------
@@ -523,27 +584,29 @@ def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     return list_frame4check
 
 
-def create_menu(win: tk.Tk, load):
+def create_menu(root: tk.Tk, load):
     """
     Автор: Ковязин В.
     Цель:   создает меню на главном окне
     Вход:   объект главного окна, объект функции load
     Выход:  нет
     """
-    menubar = tk.Menu(win)
+    menubar = tk.Menu(root)
     file = tk.Menu(menubar, tearoff=0)
     file.add_command(label="Load", command=load)
-    file.add_command(label="Exit", command=win.quit)
+    file.add_command(label="Exit", command=root.quit)
     menubar.add_cascade(label="File", menu=file)
 
     edit = tk.Menu(menubar, tearoff=0)
     edit.add_command(label="smth")
     menubar.add_cascade(label="Edit", menu=edit)
 
+    menubar.add_command(label="Стат. отчет", command=lambda *args: stat_report_event(root))
+
     about = tk.Menu(menubar, tearoff=0)
     about.add_command(label="smth")
     menubar.add_cascade(label="About", menu=about)
-    win.config(menu=menubar)
+    root.config(menu=menubar)
 
 
 def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:

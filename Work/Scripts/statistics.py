@@ -264,6 +264,14 @@ def draw_diagram(root: tk.Tk, pane: ttk.Panedwindow):
     # plt.show()
 
 
+def stat_report(root: tk.Tk, target: str) -> tuple:
+    freq = glob.current_base[target].value_counts()
+    whole = 0
+    for x in freq.values:
+        whole += x
+    return freq, whole
+
+
 # эту функцию нужно дописать
 def save_file(background, string) -> None:
     """
