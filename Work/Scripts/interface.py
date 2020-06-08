@@ -227,6 +227,7 @@ def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
             индекс базы в Listbox
     Выход:  нет
     """
+
     glob.current_base_list_id = selected
     glob.current_base, glob.current_base_name = glob.work_list.get(
         glob.base_list.get(selected).replace('*', '')), glob.base_list.get(selected)
@@ -531,8 +532,8 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
 
     global CHOSEN_option, GL_REQUEST
 
-    GL_REQUEST = tk.StringVar(value="Поиск")
-    request = tk.Entry(tools_frame4check, textvariable=GL_REQUEST, relief="raised", bd=2)
+    search_data = tk.StringVar(value="Поиск")
+    request = tk.Entry(tools_frame4check, textvariable=search_data, relief="raised", bd=2)
     request_menu = ttk.Combobox(tools_frame4check, state='readonly',
                                 values=["Без фильтра", "По названию", "По типу", "По стране", "По цунами",
                                         "По землетрясению"])
@@ -556,7 +557,8 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
                                                              table_normal_forms_selector.get(),
                                                              save))
     request_menu.bind("<<ComboboxSelected>>",
-                      lambda event: search_call(root, pane, request_menu, request_menu.get()))
+                      lambda event: search_call(root, pane, request_menu, request_menu.get(), search_data.get(),
+                                                save, create))
 
     select_columns.bind("<Button-1>", lambda *args: select_columns_event(root, pane))
     close_button.bind("<Button-1>", lambda *args: close_event(pane, save))
@@ -580,26 +582,37 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     tools_frame4check.grid(row=0, column=0, columnspan=12, sticky="NSEW")
 
 
-def search_call(root: tk.Tk, pane: ttk.Panedwindow, selector, option: str):
+def search_call(root: tk.Tk, pane: ttk.Panedwindow, selector, option: str,
+                search_data, save, create):
     if not glob.is_db_open():
         selector.current(0)
-    # if not glob.is_saved():
-    #  ans = err.yes_no("Сохранить изменения?")
-    #  if ans:
-    #   save()
-    searchResult = {}
+        return
+    if not glob.is_saved():
+        ans = err.yes_no("Сохранить изменения?")
+        if ans:
+            save()
+    filter_option = ''
     if option == "Без фильтра":
-        glob.columns = constants.origin_columns
+        filter_option = 'all'
     elif option == "По названию":
-        searchResult = hand_base.search_name(hand_base.bd, GL_REQUEST)
+        filter_option = 'Name'
     elif option == "По типу":
-        searchResult = hand_base.search_type(hand_base.bd, GL_REQUEST)
+        filter_option = 'Type'
     elif option == "По стране":
-        searchResult = hand_base.search_country(hand_base.bd, GL_REQUEST)
+        filter_option = 'Country'
     elif option == "По цунами":
-        searchResult = hand_base.search_TSU(hand_base.bd, GL_REQUEST)
+        filter_option = 'TSU'
     elif option == "По землетрясению":
-        searchResult = hand_base.search_EQ(hand_base.bd, GL_REQUEST)
+        filter_option = 'EQ'
+    search_result = hand_base.searching(search_data, filter_option)
+    # допилите сообщения)))
+    if search_result.empty:
+        err.warning('Ничего не найдено', True)
+        return
+    search_result.reset_index(inplace=True, drop=True)
+    create()
+    glob.work_list[glob.base_list.get(glob.base_list.size() - 1)] = search_result
+    open_base(root, pane, glob.base_list.size() - 1)
 
 
 # def Show_base():
