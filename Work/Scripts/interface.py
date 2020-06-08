@@ -283,6 +283,7 @@ def show_form(root, pane, selector, form: str, save):
     """
     if not glob.is_db_open():
         selector.current(0)
+        return
     if not glob.is_saved():
         ans = err.yes_no("Сохранить изменения?")
         if ans:
@@ -313,49 +314,93 @@ def select_statistics_event(root: tk.Tk, pane: ttk.Panedwindow):
     win = tk.Toplevel(root)
     win.title("Выбор")
     win.geometry("400x400+500+200")
-
+    win.minsize(400, 600)
     background = tk.Frame(win, bg="#F8F8FF")
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     lang = tk.StringVar()
 
-    win.geometry("400x400+500+300")
+    win.geometry("400x600+500+300")
     lbl = tk.Label(win)
     lbl.configure(bg="#F8F8FF", text="Выберите данные для общей статистики")
-    lbl.place(relx=0.05, rely=0.05)
+    lbl.place(relx=0.05, rely=0.02)
 
     Elevation_checkbutton = tk.Radiobutton(background, text="Высота", value="Elevation", bg="#F8F8FF", variable=lang)
-    Elevation_checkbutton.place(relx=0.25, rely=0.1)
+    Elevation_checkbutton.place(relx=0.25, rely=0.05)
     # Elevation_checkbutton.grid(row=1, column=0, sticky='W')
     # Elevation_checkbutton.pack()
 
     DEATHS_checkbutton = tk.Radiobutton(background, text="Количество смертей", value="DEATHS",
                                         variable=lang, bg="#F8F8FF")
-    DEATHS_checkbutton.place(relx=0.25, rely=0.2)
+    DEATHS_checkbutton.place(relx=0.25, rely=0.1)
     # DEATHS_checkbutton.grid(row=2, column=0, sticky='W')
     # DEATHS_checkbutton.pack()
 
     DAMAGE_checkbutton = tk.Radiobutton(background, text="Ущерб в млн долларов", value="DAMAGE_MILLIONS_DOLLARS",
                                         variable=lang, bg="#F8F8FF")
-    DAMAGE_checkbutton.place(relx=0.25, rely=0.3)
+    DAMAGE_checkbutton.place(relx=0.25, rely=0.15)
     # DAMAGE_checkbutton.grid(row=3, column=0, sticky='W')
     # DAMAGE_checkbutton.pack()
 
     MISSING_checkbutton = tk.Radiobutton(background, text="Количество пропавших", value="MISSING",
                                          variable=lang, bg="#F8F8FF")
-    MISSING_checkbutton.place(relx=0.25, rely=0.4)
+    MISSING_checkbutton.place(relx=0.25, rely=0.2)
     # MISSING_checkbutton.grid(row=4, column=0, sticky='W')
     # MISSING_checkbutton.pack()
 
     INJURIES_checkbutton = tk.Radiobutton(background, text="Количество раненных", value="INJURIES",
                                           variable=lang, bg="#F8F8FF")
-    INJURIES_checkbutton.place(relx=0.25, rely=0.5)
+    INJURIES_checkbutton.place(relx=0.25, rely=0.25)
     # INJURIES_checkbutton.grid(row=5, column=0, sticky='W')
     # INJURIES_checkbutton.pack()
 
+    ttk.Separator(background, orient='horizontal').place(relx=0, rely=0.29,
+                                                         relheight=0, relwidth=1)
+
+    Name_checkbutton = tk.Radiobutton(background, text="Имя", value="Name", bg="#F8F8FF", variable=lang)
+    Name_checkbutton.place(relx=0.25, rely=0.3)
+
+    Location_checkbutton = tk.Radiobutton(background, text="Расположение", value="Location",
+                                          variable=lang, bg="#F8F8FF")
+    Location_checkbutton.place(relx=0.25, rely=0.35)
+
+    Country_checkbutton = tk.Radiobutton(background, text="Страна", value="Country",
+                                         variable=lang, bg="#F8F8FF")
+    Country_checkbutton.place(relx=0.25, rely=0.4)
+
+    Latitude_checkbutton = tk.Radiobutton(background, text="Широта", value="Latitude",
+                                          variable=lang, bg="#F8F8FF")
+    Latitude_checkbutton.place(relx=0.25, rely=0.45)
+
+    Longitude_checkbutton = tk.Radiobutton(background, text="Долгота", value="Longitude",
+                                           variable=lang, bg="#F8F8FF")
+    Longitude_checkbutton.place(relx=0.25, rely=0.5)
+
+    Type_checkbutton = tk.Radiobutton(background, text="Тип", value="Type", bg="#F8F8FF", variable=lang)
+    Type_checkbutton.place(relx=0.25, rely=0.55)
+
+    VEI_checkbutton = tk.Radiobutton(background, text="Индекс взрывоопасности", value="VEI", variable=lang,
+                                     bg="#F8F8FF")
+    VEI_checkbutton.place(relx=0.25, rely=0.6)
+
+    Agent_checkbutton = tk.Radiobutton(background, text="Причина", value="Agent",
+                                       variable=lang, bg="#F8F8FF")
+    Agent_checkbutton.place(relx=0.25, rely=0.65)
+
+    TSU_checkbutton = tk.Radiobutton(background, text="Было ли цунами?", value="TSU",
+                                     variable=lang, bg="#F8F8FF")
+    TSU_checkbutton.place(relx=0.25, rely=0.7)
+
+    EQ_checkbutton = tk.Radiobutton(background, text="Было ли землетрясение?", value="EQ",
+                                    variable=lang, bg="#F8F8FF")
+    EQ_checkbutton.place(relx=0.25, rely=0.75)
+
     apply_button = tk.Button(background, text="Выбрать", font=3, bg="#B0E0E6")
-    apply_button.bind("<Button-1>", lambda *args: stat.statistics_base(root, pane, lang.get()))
-    apply_button.place(relx=0.5, rely=0.6, relheight=0.1, relwidth=0.25)
+    apply_button.bind("<Button-1>",
+                      lambda *args:
+                      stat.statistics_base(root, pane, lang.get()) if lang.get() in constants.quantity_columns
+                      else show_stat_report(root, lang.get()))
+    apply_button.place(relx=0.5, rely=0.8, relheight=0.1, relwidth=0.25)
     background.pack(side="top", fill="both", expand=True, padx=10, pady=5)
 
 
@@ -601,7 +646,7 @@ def create_menu(root: tk.Tk, load):
     edit.add_command(label="smth")
     menubar.add_cascade(label="Edit", menu=edit)
 
-    menubar.add_command(label="Стат. отчет", command=lambda *args: stat_report_event(root))
+    # menubar.add_command(label="Стат. отчет", command=lambda *args: stat_report_event(root))
 
     about = tk.Menu(menubar, tearoff=0)
     about.add_command(label="smth")

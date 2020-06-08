@@ -14,4 +14,5 @@ second_form = ['Location', 'Country', 'Latitude', 'Longitude']
 third_form = ['Year', 'Month', 'Day', 'Name', 'VEI', 'Agent', 'DEATHS', 'INJURIES', 'MISSING',
               'DAMAGE_MILLIONS_DOLLARS', 'TSU', 'EQ']
 
-quality_columns = ['Name', 'Location', 'Country', 'Type', 'VEI', 'Agent', 'TSU', 'EQ']
+quality_columns = ['Name', 'Location', 'Country', 'Latitude', 'Longitude', 'Type', 'VEI', 'Agent', 'TSU', 'EQ']
+quantity_columns = ['Elevation', 'DEATHS', 'INJURIES', 'MISSING', 'DAMAGE_MILLIONS_DOLLARS']
