@@ -52,11 +52,10 @@ def choice_table(root: tk.Tk, pane: ttk.Panedwindow):
     background = tk.Frame(win, bg="#F8F8FF")
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
-    choice = ("Страна - Средняя смертность", "Страна - Средняя высота вулкана",
-              "Страна - Количество вулканов", "Расположение - Средняя смертность",
-              "Тип вулкана - Средняя смертность", "Год - Количество извержений",
-              "Тип вулкана - Количество пропавших", "Тип вулкана - Вероятность цунами",
-              "Тип вулкана - Вероятность землетрясения")
+    choice = ("Выберите фильтры", "Страна - Средняя смертность", "Страна - Средняя высота вулкана",
+              "Расположение - Средняя смертность",
+              "Тип вулкана - Средняя смертность", "Тип вулкана - Количество пропавших",
+              "Название вулкана - Количество раненных")
 
     # make_table = tk.Label(background)
     CHOSEN_VALUE = tk.StringVar(value='Выберите фильтры')
@@ -71,9 +70,24 @@ def choice_table(root: tk.Tk, pane: ttk.Panedwindow):
     background.pack(side="top", fill="both", expand=True, padx=10, pady=5)
 
 
+def name_injuries():
+    General = pd.DataFrame(hand_base.bd)
+
+    General['INJURIES'] = General['INJURIES'].apply(pd.to_numeric, errors='coerce')
+
+    rat = General.groupby(['Name']).agg({'INJURIES': "sum"})
+
+    rat.rename(columns={'Name': 'Название', 'INJURIES': 'Раненые'}, inplace=True)
+    rat = rat.reset_index()
+    rat = rat.round({'Injuries': 2})
+    rat.fillna(0)
+    # print(rat)
+    return rat.fillna(0)
+
+
 def country_deaths_mean():
     """
-    Автор: 
+    Автор:
     Цель: Подсчёт средней смертности для каждой страны
     Входные параметры: DataFrame
     Возвращает: нет
@@ -105,11 +119,6 @@ def country_elevation_mean():
     return rat.fillna(0)
 
 
-def country_volcanoes_number():
-    num = 1
-    return num
-
-
 def location_deaths_mean():
     General = pd.DataFrame(hand_base.bd)
     General['DEATHS'] = General['DEATHS'].apply(pd.to_numeric, errors='coerce')
@@ -137,11 +146,6 @@ def type_deaths_mean():
     return rat.fillna(0)
 
 
-def year_num():
-    num = 1
-    return num
-
-
 def type_missing_num():
     General = pd.DataFrame(hand_base.bd)
     General['MISSING'] = General['MISSING'].apply(pd.to_numeric, errors='coerce')
@@ -155,20 +159,10 @@ def type_missing_num():
     return num
 
 
-def type_TSU():
-    ver = 1
-    return (ver)
-
-
-def type_IQ():
-    ver = 1
-    return (ver)
-
-
 def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
     """
     Цель: Функция, создающая окно для просмотра сводной таблицы
-    Автор: 
+    Автор:
     Входные параметры: нет
     Возвращает: нет
     """
@@ -193,8 +187,10 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
     if CHOSEN_VALUE.get() == 'Выберите фильтры':
         mb.showerror("Ошибка!", "Сначала выберите фильтр!")
 
+
+
     elif CHOSEN_VALUE.get() == 'Страна - Средняя смертность':
-        # выбор параметра и строится соответствующая таблица 
+        # выбор параметра и строится соответствующая таблица
 
         bd_series = country_deaths_mean()
         bd = bd_series
@@ -215,8 +211,36 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
 
         button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
 
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
+
+    elif CHOSEN_VALUE.get() == 'Название вулкана - Количество раненных':
+        # выбор параметра и строится соответствующая таблица
+
+        bd_series = name_injuries()
+        bd = bd_series
+        list_ = statoutput(bd)
+        table = ttk.Treeview(answerfr_1, columns=('Название', 'Раненые'), height=15, show='headings')
+        table.column('Название', anchor=tk.CENTER)
+        table.column('Раненые', anchor=tk.CENTER)
+        table.heading('Название', text='Название')
+        table.heading('Раненые', text='Раненые')
+        for row in list_:
+            table.insert('', tk.END, values=row)
+
+        table.place(relwidth=1, relheight=1)
+
+        # кнопка сохранения
+        button_save = tk.Button(background, font=12, text='Сохранить')
+        button_save.bind("<Button-1>", lambda *args: save_button(bd))
+
+        button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
+
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
+
 
     elif CHOSEN_VALUE.get() == 'Страна - Средняя высота вулкана':
         # выбор параметра и соответсвующая параметру таблица строится
@@ -242,32 +266,10 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
 
         button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
 
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
-    elif CHOSEN_VALUE.get() == 'Страна - Количество вулканов':
-
-        bd_series = country_volcanoes_number()
-        bd = bd_series
-        list_ = statoutput(bd)
-
-        table = ttk.Treeview(answerfr_1, columns=('Страна', 'Средняя высота вулкана'), height=15, show='headings')
-        table.column('Страна', anchor=tk.CENTER)
-        table.column('Средняя высота вулкана', anchor=tk.CENTER)
-        table.heading('Страна', text='Страна')
-        table.heading('Средняя высота вулкана', text='Средняя высота вулкана')
-        for row in list_:
-            table.insert('', tk.END, values=row)
-
-        table.place(relwidth=1, relheight=1)
-
-        # кнопка сохранения
-        button_save = tk.Button(background, font=12, text='Сохранить')
-        button_save.bind("<Button-1>", lambda *args: save_button(bd))
-
-        button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
 
     elif CHOSEN_VALUE.get() == 'Расположение - Средняя смертность':
         # выбор параметра и соответсвующая параметру таблица строится
@@ -292,8 +294,9 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
         button_save.bind("<Button-1>", lambda *args: save_button(bd))
 
         button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
     elif CHOSEN_VALUE.get() == 'Тип вулкана - Средняя смертность':
         # выбор параметра и соответсвующая параметру таблица строится
@@ -318,35 +321,10 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
         button_save.bind("<Button-1>", lambda *args: save_button(bd))
 
         button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
-    elif CHOSEN_VALUE.get() == 'Год - Количество извержений':
-        # выбор параметра и соответсвующая параметру таблица строится
-
-        bd_series = year_num()
-
-        bd = bd_series
-        list_ = statoutput(bd)
-
-        table = ttk.Treeview(answerfr_1, columns=('Год', 'Количество извержений'), height=15, show='headings')
-        table.column('Год', anchor=tk.CENTER)
-        table.column('Количество извержений', anchor=tk.CENTER)
-        table.heading('Год', text='Год')
-        table.heading('Количество извержений', text='Количество извержений')
-        for row in list_:
-            table.insert('', tk.END, values=row)
-
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
-
-        table.place(relwidth=1, relheight=1)
-
-        # кнопка сохранения
-        button_save = tk.Button(background, font=12, text='Сохранить')
-        button_save.bind("<Button-1>", lambda *args: save_button(bd))
-
-        button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
 
     elif CHOSEN_VALUE.get() == 'Тип вулкана - Количество пропавших':
         # выбор параметра и соответсвующая параметру таблица строится
@@ -364,65 +342,9 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
         for row in list_:
             table.insert('', tk.END, values=row)
 
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
-
-        table.place(relwidth=1, relheight=1)
-
-        # кнопка сохранения
-        button_save = tk.Button(background, font=12, text='Сохранить')
-        button_save.bind("<Button-1>", lambda *args: save_button(bd))
-
-        button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
-
-    elif CHOSEN_VALUE.get() == 'Тип вулкана - Вероятность цунами':
-        # выбор параметра и соответсвующая параметру таблица строится
-
-        bd_series = type_TSU()
-
-        bd = bd_series
-        list_ = statoutput(bd)
-
-        table = ttk.Treeview(answerfr_1, columns=('Тип вулкана', 'Вероятность цунами'), height=15, show='headings')
-        table.column('Тип вулкана', anchor=tk.CENTER)
-        table.column('Вероятность цунами', anchor=tk.CENTER)
-        table.heading('Тип вулкана', text='Тип вулкана')
-        table.heading('Тип вулкана', text='Вероятность цунами')
-        for row in list_:
-            table.insert('', tk.END, values=row)
-
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
-
-        table.place(relwidth=1, relheight=1)
-
-        # кнопка сохранения
-        button_save = tk.Button(background, font=12, text='Сохранить')
-        button_save.bind("<Button-1>", lambda *args: save_button(bd))
-
-        button_save.place(relx=0.755, rely=0.9375, relheight=0.0495, relwidth=0.22)
-
-    elif CHOSEN_VALUE.get() == 'Тип вулкана - Вероятность цунами':
-        # выбор параметра и соответсвующая параметру таблица строится
-
-        bd_series = type_IQ()
-
-        bd = bd_series
-        list_ = statoutput(bd)
-
-        table = ttk.Treeview(answerfr_1, columns=('Тип вулкана', 'Вероятность землетрясения'), height=15,
-                             show='headings')
-        table.column('Тип вулкана', anchor=tk.CENTER)
-        table.column('Вероятность землетрясения', anchor=tk.CENTER)
-        table.heading('Тип вулкана', text='Тип вулкана')
-        table.heading('Тип вулкана', text='Вероятность землетрясения')
-        for row in list_:
-            table.insert('', tk.END, values=row)
-
-        scrollbar = ttk.Scrollbar(answerfr_1, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        scrolltable = tk.Scrollbar(answerfr_1, orient=tk.VERTICAL, command=table.yview)
+        table.config(yscrollcommand=scrolltable.set)
+        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
         table.place(relwidth=1, relheight=1)
 
@@ -435,8 +357,8 @@ def stat_table_window(root: tk.Tk, pane: ttk.Panedwindow):
 
 def save_button(bd):
     """
-    Функция для сохранения таблицы 
-    Принимает: bd 
+    Функция для сохранения таблицы
+    Принимает: bd
     Возвращает: Ничего
     """
     global CHOSEN_VALUE
@@ -461,5 +383,5 @@ def save_button(bd):
     elif name == 'Тип вулкана - Вероятность землетрясения':
         name = 'Type_IQ'
 
-    bd.to_csv("../Data/" + name + ".csv", index=False)
+    bd.to_csv("../Output/" + name + ".csv", index=False)
     mb.showinfo("Информация", "Таблица " + name + " успешно сохранена")
