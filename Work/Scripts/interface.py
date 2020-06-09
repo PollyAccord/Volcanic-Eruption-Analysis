@@ -17,7 +17,7 @@ from Scripts import statistics as stat
 
 def close_event(pane: ttk.Panedwindow, save):
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель:   закрывает открытую базу и показывает приглащение к открытию новой на правой стороне pane,
                 save вызывается для сохранения базы, по решению пользователя
         Вход: pane - растягивающийся виджет, save - объект функции save_event из main
@@ -40,7 +40,7 @@ def close_event(pane: ttk.Panedwindow, save):
 
 def remove_inf():
     """
-        Автор: Ковязин В.
+        Автор: 
         \nЦель: удаляет строку из таблицы
         \nВход: корневое окно tkinter для создания окна редактирования, список активных столбцов таблицы
         \nВыход: нет
@@ -66,7 +66,7 @@ def remove_inf():
 
 def edit_event(root: tk.Tk):
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель:   обработчик события кнопки изменения поля таблицы, открывает окно для изменения данных
         Вход:   корневое окно tkinter для создания окна редактирования
         Выход:  нет
@@ -120,7 +120,7 @@ def edit_event(root: tk.Tk):
 
 def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   обработчик события кнопки сохранения в окне редактирования поля таблицы
     Вход:   объект окна редактирования tkinter для его закрытия после нажатия кнопки сохранить,
             текущий индекс выбранного поля таблицы,
@@ -143,7 +143,7 @@ def make_changes_event(win: tk.Toplevel, index: int, new_values: dict):
 
 def uncheck_all_event(*args):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   снимает метки со всех значений columns_selection
     Вход:   нет
     Выход:  нет
@@ -153,7 +153,7 @@ def uncheck_all_event(*args):
 
 def check_all_event(*args):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   ставит метки на все значения columns_selection
     Вход:   нет
     Выход:  нет
@@ -163,7 +163,7 @@ def check_all_event(*args):
 
 def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   применяет к программме выбор столбцов (изменяет рабочее пространство)
     Вход:   главное окно, побочное окно выбора столбцов, растягивающийся виджет
     Выход:  нет
@@ -179,7 +179,7 @@ def apply_column_selection(root: tk.Tk, win: tk.Toplevel, pane: ttk.Panedwindow)
 
 def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   открывает окно для выбора столбцов, которые надо показать в программе
     Вход:   главное окно, растягивающийся виджет
     Выход:  нет
@@ -220,7 +220,7 @@ def select_columns_event(root: tk.Tk, pane: ttk.Panedwindow):
 
 def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   открывает загруженную базу данных и создает для нее таблицу с полями, добавляя ее на главный экран
     Вход:   объект главного окна,
             объект растягиваемого виджета,
@@ -238,7 +238,7 @@ def open_base(root: tk.Tk, pane: ttk.Panedwindow, selected: int):
 
 def workspace_onclick_event(root, event, mode: str):
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель:   обработчик события нажатия на рабочее пространство таблицы данных
         Вход:   объект главного окна,
                 информация события,
@@ -263,7 +263,7 @@ def workspace_onclick_event(root, event, mode: str):
 
 def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель:   создание фрейма с приглашением
         Вход:   объект растягивающегося виджета,
         Выход:  фрейм с приглашением
@@ -277,7 +277,7 @@ def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
 
 def show_form(root, pane, selector, form: str, save):
     """
-            Автор: Ковязин В.
+            Автор:  
             Цель:
             Вход:
             Выход:  нет
@@ -303,7 +303,7 @@ def show_form(root, pane, selector, form: str, save):
 
 def select_statistics_event(root: tk.Tk, pane: ttk.Panedwindow):
     """
-          Автор: Подкопаева П. 
+          Автор:   
           Цель:   открывает окно для выбора данных, для которых нужно показать общую статистику
           Вход:   главное окно, растягивающийся виджет
           Выход:  нет
@@ -496,7 +496,7 @@ def stat_report_event(root: tk.Tk):
 
 def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons: glob.Icons):
     """
-    Автор: Ковязин В., Подкопаева П. 
+    Автор:  ,   
     Цель:   создание панели инструментов в главном окне
     Вход:   объект главного окна,
             объект растягивающегося виджета,
@@ -624,7 +624,7 @@ def search_call(root: tk.Tk, pane: ttk.Panedwindow, selector, option: str,
 
 def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   создание виджета Listbox для выбора базы
     Вход:   объект главного окна,
             объект растягивающегося виджета
@@ -644,7 +644,7 @@ def create_list4db(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
 
 def create_menu(root: tk.Tk, load):
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель:   создает меню на главном окне
     Вход:   объект главного окна, объект функции load
     Выход:  нет
@@ -669,7 +669,7 @@ def create_menu(root: tk.Tk, load):
 
 def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель:   создает рабочее пространство таблицы
         Вход:   объект главного окна,
                 объект растягивающегося виджета,
@@ -709,7 +709,7 @@ def create_workspace(root: tk.Tk, pane: ttk.Panedwindow) -> tk.LabelFrame:
 
 def add_inf(win: tk.Tk, form: str, save):
     """
-        Автор:Подкопаева П.
+        Автор: 
         Цель: Добавление новых элементов в базу данных (окно)
         Вход: Нет
         Выход: Нет

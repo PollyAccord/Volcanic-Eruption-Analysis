@@ -13,7 +13,7 @@ glob.work_list['Volcano Eruption'] = glob.correct_base_values(bd)
 
 def read_base(path: str) -> str:
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель: загружает базу из файла
     Вход: путь
     Выход: новая база
@@ -38,7 +38,7 @@ def read_base(path: str) -> str:
 
 def create_base(path: str) -> str:
     """
-    Автор: Ковязин В.
+    Автор:  
     Цель: создает новую чистую базу
     Вход: путь
     Выход: новая база
@@ -58,7 +58,7 @@ def create_base(path: str) -> str:
 
 def save_base() -> None:
     """
-        Автор: Ковязин В.
+        Автор:  
         Цель: сохраняем текущую базу
         Вход: нет
         Выход: нет
