@@ -71,6 +71,8 @@ def load_event(*args):
     try:
         base_name = hand_base.read_base(path)
         glob.base_list.insert(tk.END, base_name)
+    except FileNotFoundError:
+        pass
     except Exception as error:
         message = str(error)
         err.error(message[message.find('['):message.find(']') + 1] + " нет в Базе Данных")
