@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath('..'))
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
-
+from Scripts import constants
 from Scripts import base_handling as hand_base
 from Scripts import globalvars as glob
 from Scripts import interface as ui
@@ -130,14 +130,15 @@ root.config(background="white")
 
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
+#
+# widthRatio = 1200 / 1920
+# heightRatio = 800 / 1080
+# app_width = int(screen_width * widthRatio)
+# app_height = int(screen_height * heightRatio)
+# geometry = str(app_width) + "x" + str(app_height) + "+" + str(screen_width // 2 - app_width // 2) + "+" + str(
+#     screen_height // 2 - app_height // 2)
 
-widthRatio = 1200 / 1920
-heightRatio = 800 / 1080
-app_width = int(screen_width * widthRatio)
-app_height = int(screen_height * heightRatio)
-geometry = str(app_width) + "x" + str(app_height) + "+" + str(screen_width // 2 - app_width // 2) + "+" + str(
-    screen_height // 2 - app_height // 2)
-root.minsize(400, 400)
+root.minsize(constants.style['app_width'], constants.style['app_height'])
 root.maxsize(screen_width, screen_height)
-root.geometry(geometry)
+root.geometry(str(constants.style['app_width']) + 'x' + str(constants.style['app_height']))
 root.mainloop()

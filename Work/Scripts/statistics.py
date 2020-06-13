@@ -20,11 +20,11 @@ def statistics_base(root: tk.Toplevel, pane: ttk.Panedwindow, string):
     Выход: Нет (файл)
     """
 
-    win = tk.Toplevel(root, bg="#F8F8FF")
+    win = tk.Toplevel(root, bg=constants.style['bg'])
     win.title("Статистические данные: " + string)
     win.geometry('600x400+500+300')
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     bd = glob.current_base
@@ -40,55 +40,64 @@ def statistics_base(root: tk.Toplevel, pane: ttk.Panedwindow, string):
         s = 'acимметрия влево'
     disp = (sortedSample.apply(lambda x: (x - average) ** 2).sum()) / (len(sortedSample) - 1)
 
-    average_label = tk.Label(background, text="Среднее арифметическое: %5f" % (average), bg="#F8F8FF",
-                             font=('Arial', 9, 'italic'))
+    average_label = tk.Label(background, text="Среднее арифметическое: %5f" % (average), bg=constants.style['bg'],
+                             font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     average_label.place(relx=0.2, rely=0)
 
-    med_label = tk.Label(background, text="Медиана: %5f" % (med), bg="#F8F8FF", font=('Arial', 9, 'italic'))
+    med_label = tk.Label(background, text="Медиана: %5f" % (med), bg=constants.style['bg'],
+                         font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     med_label.place(relx=0.2, rely=0.05)
 
-    mod_label = tk.Label(background, text="Мода: %5f" % (mode), bg="#F8F8FF", font=('Arial', 9, 'italic'))
+    mod_label = tk.Label(background, text="Мода: %5f" % (mode), bg=constants.style['bg'],
+                         font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     mod_label.place(relx=0.2, rely=0.1)
 
-    s_label = tk.Label(background, text="Форма плотности распределения: %s" % (s), bg="#F8F8FF",
-                       font=('Arial', 9, 'italic'))
+    s_label = tk.Label(background, text="Форма плотности распределения: %s" % (s), bg=constants.style['bg'],
+                       font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     s_label.place(relx=0.2, rely=0.15)
 
-    disp_label = tk.Label(background, text="Выборочная дисперсия: %4f" % (disp), bg="#F8F8FF",
-                          font=('Arial', 9, 'italic'))
+    disp_label = tk.Label(background, text="Выборочная дисперсия: %4f" % (disp), bg=constants.style['bg'],
+                          font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     disp_label.place(relx=0.2, rely=0.2)
 
     quartLow_label = tk.Label(background, text="Нижняя квартиль: %4f" % (sortedSample.quantile(0.25)),
-                              font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                              font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                              bg=constants.style['bg'])
     quartLow_label.place(relx=0.2, rely=0.25)
 
     quartHigh_label = tk.Label(background, text="Верхняя квартиль: %4f" % (sortedSample.quantile(0.75)),
-                               font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                               font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                               bg=constants.style['bg'])
     quartHigh_label.place(relx=0.2, rely=0.3)
 
     quartrazm_label = tk.Label(background, text="Межквартильный размах: %5d" % (
             sortedSample.quantile(0.75) - sortedSample.quantile(0.25)),
-                               font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                               font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                               bg=constants.style['bg'])
     quartrazm_label.place(relx=0.2, rely=0.35)
 
-    max_label = tk.Label(background, text="Максимум: %5d" % (sortedSample.max()), font=('Arial', 9, 'italic'),
-                         bg="#F8F8FF")
+    max_label = tk.Label(background, text="Максимум: %5d" % (sortedSample.max()),
+                         font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                         bg=constants.style['bg'])
     max_label.place(relx=0.2, rely=0.4)
 
-    min_label = tk.Label(background, text="Минимум: %5d" % (sortedSample.min()), bg="#F8F8FF",
-                         font=('Arial', 9, 'italic'))
+    min_label = tk.Label(background, text="Минимум: %5d" % (sortedSample.min()), bg=constants.style['bg'],
+                         font=(constants.style['font_family'], constants.style['font_size'], 'italic'))
     min_label.place(relx=0.2, rely=0.45)
 
     razm_label = tk.Label(background, text="Размах: %5d" % (sortedSample.max() - sortedSample.min()),
-                          font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                          font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                          bg=constants.style['bg'])
     razm_label.place(relx=0.2, rely=0.5)
 
     sko_label = tk.Label(background, text="Стандартное отклонение (СКО): %5f" % (sortedSample.std()),
-                         font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                         font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                         bg=constants.style['bg'])
     sko_label.place(relx=0.2, rely=0.55)
 
     kvar_label = tk.Label(background, text="Коэффициент вариации: %5d" % (sortedSample.std() / sortedSample.mean()),
-                          font=('Arial', 9, 'italic'), bg="#F8F8FF")
+                          font=(constants.style['font_family'], constants.style['font_size'], 'italic'),
+                          bg=constants.style['bg'])
     kvar_label.place(relx=0.2, rely=0.6)
 
     value_button = tk.Button(background, text="Сохранить", font=1, bg="#B0E0E6")
@@ -108,7 +117,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Выбор")
     win.geometry("700x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     choice_graph = ("Фильтры для линейного графика", "Год - Средняя смертность")
@@ -118,7 +127,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_gr.place(relx=0.1, rely=0.1)
     make_gr.pack()
 
-    button_graph = tk.Button(background, text='Построить график', bg="#AFEEEE")
+    button_graph = tk.Button(background, text='Построить график', bg=constants.style['plots_button'])
 
     button_graph.bind("<Button-1>", lambda *args: draw_graph(root, pane))
     button_graph.place(relx=0.0, rely=0.5, relheight=0.1, relwidth=0.2)
@@ -132,7 +141,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_dgrm.place(relx=0.3, rely=0.1)
     make_dgrm.pack()
 
-    button_diagram = tk.Button(background, text='Построить диаграмму', bg="#AFEEEE")
+    button_diagram = tk.Button(background, text='Построить диаграмму', bg=constants.style['plots_button'])
 
     button_diagram.bind("<Button-1>", lambda *args: draw_diagram(root, pane))
     button_diagram.place(relx=0.4, rely=0.5, relheight=0.1, relwidth=0.2)
@@ -145,7 +154,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_pie.place(relx=0.5, rely=0.1)
     make_pie.pack()
 
-    button_pie = tk.Button(background, text='Построить "пирог"', bg="#AFEEEE")
+    button_pie = tk.Button(background, text='Построить "пирог"', bg=constants.style['plots_button'])
 
     button_pie.bind("<Button-1>", lambda *args: draw_pie(root, pane))
     button_pie.place(relx=0.8, rely=0.5, relheight=0.1, relwidth=0.2)
@@ -157,7 +166,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_box.place(relx=0.7, rely=0.1)
     make_box.pack()
 
-    button_box = tk.Button(background, text='Построить \n "Бокса-Вискерса"', bg="#AFEEEE")
+    button_box = tk.Button(background, text='Построить \n "Бокса-Вискерса"', bg=constants.style['plots_button'])
 
     button_box.bind("<Button-1>", lambda *args: draw_box(root, pane))
     button_box.place(relx=0.0, rely=0.7, relheight=0.1, relwidth=0.2)
@@ -169,7 +178,8 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_scatter.place(relx=0.7, rely=0.1)
     make_scatter.pack()
 
-    button_scatter = tk.Button(background, text='Построить \n диаграмму \n рассеяния', bg="#AFEEEE")
+    button_scatter = tk.Button(background, text='Построить \n диаграмму \n рассеяния',
+                               bg=constants.style['plots_button'])
 
     button_scatter.bind("<Button-1>", lambda *args: draw_scatter(root, pane))
     button_scatter.place(relx=0.4, rely=0.7, relheight=0.1, relwidth=0.2)
@@ -180,7 +190,7 @@ def graphics_choice(root: tk.Tk, pane: ttk.Panedwindow):
     make_hist.place(relx=0.8, rely=0.1)
     make_hist.pack()
 
-    button_scatter = tk.Button(background, text='Построить гистограмму', bg="#AFEEEE")
+    button_scatter = tk.Button(background, text='Построить гистограмму', bg=constants.style['plots_button'])
 
     button_scatter.bind("<Button-1>", lambda *args: draw_hist(root, pane))
     button_scatter.place(relx=0.8, rely=0.7, relheight=0.1, relwidth=0.2)
@@ -195,7 +205,7 @@ def draw_graph(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("График")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='График\n' + CHOSEN_VALUE1.get(), bg="#F5F5F5")
@@ -236,13 +246,13 @@ def draw_diagram(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Диаграммы")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='Диаграмма\n' + CHOSEN_VALUE2.get(), bg="#F5F5F5")
     name_lab.place(relx=0.01, rely=0.01, relwidth=0.95, relheight=0.1)
 
-    graph = tk.Frame(background, bg="#F8F8FF")
+    graph = tk.Frame(background, bg=constants.style['bg'])
 
     if CHOSEN_VALUE2.get() == 'Фильтры для столбчатой диаграммы':
         mb.showerror("Ошибка!", "Сначала выберите фильтр (столбчатые диаграммы)!")
@@ -397,7 +407,7 @@ def draw_box(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Диаграммы размаха (Бокса-Вискера)")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='Диаграмма размаха\n' + CHOSEN_VALUE4, bg="#F5F5F5")
@@ -431,7 +441,7 @@ def draw_pie(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Круговая диаграмма")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='Круговая диаграмма\n' + CHOSEN_VALUE3.get(), bg="#F5F5F5")
@@ -550,7 +560,7 @@ def draw_scatter(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Диаграммы рассеяния")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='Диаграмма рассеяния\n' + CHOSEN_VALUE5.get(), bg="#F5F5F5")
@@ -688,7 +698,7 @@ def draw_hist(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Гистограммы")
     win.geometry("600x500+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     name_lab = tk.Label(background, text='Гистограмма\n' + CHOSEN_VALUE6.get(), bg="#F5F5F5")

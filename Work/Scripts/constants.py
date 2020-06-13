@@ -16,3 +16,8 @@ third_form = ['Year', 'Month', 'Day', 'Name', 'VEI', 'Agent', 'DEATHS', 'INJURIE
 
 quality_columns = ['Name', 'Location', 'Country', 'Latitude', 'Longitude', 'Type', 'VEI', 'Agent', 'TSU', 'EQ']
 quantity_columns = ['Elevation', 'DEATHS', 'INJURIES', 'MISSING', 'DAMAGE_MILLIONS_DOLLARS']
+
+with open("../Library/config.ini", 'r', encoding='utf-8') as f:
+    config = f.read()
+
+style = eval(config)

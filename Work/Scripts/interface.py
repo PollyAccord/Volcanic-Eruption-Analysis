@@ -269,8 +269,8 @@ def show_invitation(pane: ttk.Panedwindow) -> tk.Frame:
         Выход:  фрейм с приглашением
     """
     # label приглашение к выбору
-    pls_select_frame4check = tk.Frame(pane, bg="white")
-    lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберите базу данных", bg="white")
+    pls_select_frame4check = tk.Frame(pane, bg=constants.style['bg'])
+    lbl_select_pls = tk.Label(pls_select_frame4check, text="Пожалуйста, выберите базу данных", bg=constants.style['bg'])
     lbl_select_pls.pack(expand=True, fill="both")
     return pls_select_frame4check
 
@@ -314,43 +314,44 @@ def select_statistics_event(root: tk.Tk, pane: ttk.Panedwindow):
 
     win = tk.Toplevel(root)
     win.title("Выбор")
-    win.geometry("400x400+500+200")
+    win.geometry(constants.style['popup_width'] + 'x' + constants.style['popup_height'] + "+500+200")
     win.minsize(400, 600)
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
     lang = tk.StringVar()
 
     win.geometry("400x600+500+300")
     lbl = tk.Label(win)
-    lbl.configure(bg="#F8F8FF", text="Выберите данные для общей статистики")
+    lbl.configure(bg=constants.style['bg'], text="Выберите данные для общей статистики")
     lbl.place(relx=0.05, rely=0.02)
 
-    Elevation_checkbutton = tk.Radiobutton(background, text="Высота", value="Elevation", bg="#F8F8FF", variable=lang)
+    Elevation_checkbutton = tk.Radiobutton(background, text="Высота", value="Elevation", bg=constants.style['bg'],
+                                           variable=lang)
     Elevation_checkbutton.place(relx=0.25, rely=0.05)
     # Elevation_checkbutton.grid(row=1, column=0, sticky='W')
     # Elevation_checkbutton.pack()
 
     DEATHS_checkbutton = tk.Radiobutton(background, text="Количество смертей", value="DEATHS",
-                                        variable=lang, bg="#F8F8FF")
+                                        variable=lang, bg=constants.style['bg'])
     DEATHS_checkbutton.place(relx=0.25, rely=0.1)
     # DEATHS_checkbutton.grid(row=2, column=0, sticky='W')
     # DEATHS_checkbutton.pack()
 
     DAMAGE_checkbutton = tk.Radiobutton(background, text="Ущерб в млн долларов", value="DAMAGE_MILLIONS_DOLLARS",
-                                        variable=lang, bg="#F8F8FF")
+                                        variable=lang, bg=constants.style['bg'])
     DAMAGE_checkbutton.place(relx=0.25, rely=0.15)
     # DAMAGE_checkbutton.grid(row=3, column=0, sticky='W')
     # DAMAGE_checkbutton.pack()
 
     MISSING_checkbutton = tk.Radiobutton(background, text="Количество пропавших", value="MISSING",
-                                         variable=lang, bg="#F8F8FF")
+                                         variable=lang, bg=constants.style['bg'])
     MISSING_checkbutton.place(relx=0.25, rely=0.2)
     # MISSING_checkbutton.grid(row=4, column=0, sticky='W')
     # MISSING_checkbutton.pack()
 
     INJURIES_checkbutton = tk.Radiobutton(background, text="Количество раненных", value="INJURIES",
-                                          variable=lang, bg="#F8F8FF")
+                                          variable=lang, bg=constants.style['bg'])
     INJURIES_checkbutton.place(relx=0.25, rely=0.25)
     # INJURIES_checkbutton.grid(row=5, column=0, sticky='W')
     # INJURIES_checkbutton.pack()
@@ -358,45 +359,45 @@ def select_statistics_event(root: tk.Tk, pane: ttk.Panedwindow):
     ttk.Separator(background, orient='horizontal').place(relx=0, rely=0.29,
                                                          relheight=0, relwidth=1)
 
-    Name_checkbutton = tk.Radiobutton(background, text="Имя", value="Name", bg="#F8F8FF", variable=lang)
+    Name_checkbutton = tk.Radiobutton(background, text="Имя", value="Name", bg=constants.style['bg'], variable=lang)
     Name_checkbutton.place(relx=0.25, rely=0.3)
 
     Location_checkbutton = tk.Radiobutton(background, text="Расположение", value="Location",
-                                          variable=lang, bg="#F8F8FF")
+                                          variable=lang, bg=constants.style['bg'])
     Location_checkbutton.place(relx=0.25, rely=0.35)
 
     Country_checkbutton = tk.Radiobutton(background, text="Страна", value="Country",
-                                         variable=lang, bg="#F8F8FF")
+                                         variable=lang, bg=constants.style['bg'])
     Country_checkbutton.place(relx=0.25, rely=0.4)
 
     Latitude_checkbutton = tk.Radiobutton(background, text="Широта", value="Latitude",
-                                          variable=lang, bg="#F8F8FF")
+                                          variable=lang, bg=constants.style['bg'])
     Latitude_checkbutton.place(relx=0.25, rely=0.45)
 
     Longitude_checkbutton = tk.Radiobutton(background, text="Долгота", value="Longitude",
-                                           variable=lang, bg="#F8F8FF")
+                                           variable=lang, bg=constants.style['bg'])
     Longitude_checkbutton.place(relx=0.25, rely=0.5)
 
-    Type_checkbutton = tk.Radiobutton(background, text="Тип", value="Type", bg="#F8F8FF", variable=lang)
+    Type_checkbutton = tk.Radiobutton(background, text="Тип", value="Type", bg=constants.style['bg'], variable=lang)
     Type_checkbutton.place(relx=0.25, rely=0.55)
 
     VEI_checkbutton = tk.Radiobutton(background, text="Индекс взрывоопасности", value="VEI", variable=lang,
-                                     bg="#F8F8FF")
+                                     bg=constants.style['bg'])
     VEI_checkbutton.place(relx=0.25, rely=0.6)
 
     Agent_checkbutton = tk.Radiobutton(background, text="Причина", value="Agent",
-                                       variable=lang, bg="#F8F8FF")
+                                       variable=lang, bg=constants.style['bg'])
     Agent_checkbutton.place(relx=0.25, rely=0.65)
 
     TSU_checkbutton = tk.Radiobutton(background, text="Было ли цунами?", value="TSU",
-                                     variable=lang, bg="#F8F8FF")
+                                     variable=lang, bg=constants.style['bg'])
     TSU_checkbutton.place(relx=0.25, rely=0.7)
 
     EQ_checkbutton = tk.Radiobutton(background, text="Было ли землетрясение?", value="EQ",
-                                    variable=lang, bg="#F8F8FF")
+                                    variable=lang, bg=constants.style['bg'])
     EQ_checkbutton.place(relx=0.25, rely=0.75)
 
-    apply_button = tk.Button(background, text="Выбрать", font=3, bg="#B0E0E6")
+    apply_button = tk.Button(background, text="Выбрать", font=3, bg=constants.style['apply_button'])
     apply_button.bind("<Button-1>",
                       lambda *args:
                       stat.statistics_base(root, pane, lang.get()) if lang.get() in constants.quantity_columns
@@ -413,21 +414,24 @@ def analysis_window_event(root: tk.Tk, pane: ttk.Panedwindow):
     win.title("Выбор")
     win.geometry("400x400+500+200")
 
-    background = tk.Frame(win, bg="#F8F8FF")
+    background = tk.Frame(win, bg=constants.style['bg'])
     background.place(x=0, y=0, relwidth=1, relheight=1)
 
-    backgroundlabel = tk.Label(background, bg="#F8F8FF")
+    backgroundlabel = tk.Label(background, bg=constants.style['bg'])
     backgroundlabel.place(relx=0.025, rely=0.025, relwidth=0.95, relheight=0.95)
 
-    button_statistics = tk.Button(background, text='Сводная таблица', width=20, height=2, font=11, bg="#FFEFD5", )
+    button_statistics = tk.Button(background, text='Сводная таблица', width=20, height=2, font=11,
+                                  bg=constants.style['pivot_button'], )
     button_statistics.bind("<Button-1>", lambda *args: tb.choice_table(root, pane))
     button_statistics.place(relx=0.25, rely=0.15, relheight=0.1, relwidth=0.5)
 
-    button_map = tk.Button(background, bg="#FFE4B5", text='Построение карты', font=11, width=20, height=2)
+    button_map = tk.Button(background, bg=constants.style['map_button'], text='Построение карты', font=11, width=20,
+                           height=2)
     button_map.bind("<Button-1>", lambda *args: mp.choice_map(root, pane))
     button_map.place(relx=0.25, rely=0.45, relheight=0.1, relwidth=0.5)
 
-    button_graphics = tk.Button(background, bg="#FFDAB9", text='Построение диаграмм\n и графиков', font=11, width=20,
+    button_graphics = tk.Button(background, bg=constants.style['plotsndiagrams_button'],
+                                text='Построение диаграмм\n и графиков', font=11, width=20,
                                 height=2)
     button_graphics.bind("<Button-1>", lambda *args: stat.graphics_choice(root, pane))
     button_graphics.place(relx=0.2, rely=0.75, relheight=0.2, relwidth=0.65)
@@ -505,29 +509,38 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
     Выход:  нет
     """
 
-    tools_frame4check = tk.Frame(root, bg="white")
-    add_button = tk.Button(tools_frame4check, image=icons['add_icon'], relief="groove", bd=0, bg="white")
-    save_button = tk.Button(tools_frame4check, image=icons['save_icon'], relief="groove", bd=0, bg="white")
-    edit_button = tk.Button(tools_frame4check, image=icons['edit_icon'], relief="groove", bd=0, bg="white")
-    load_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0, bg="white")
-    add_field_button = tk.Button(tools_frame4check, image=icons['add_field_icon'], relief="groove", bd=0, bg="white")
-    del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0, bg="white")
-    select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2, bg="white")
-    close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0, bg="white")
+    tools_frame4check = tk.Frame(root, bg=constants.style['bg_accent'])
+    add_button = tk.Button(tools_frame4check, image=icons['add_icon'], relief="groove", bd=0,
+                           bg=constants.style['bg_accent'])
+    save_button = tk.Button(tools_frame4check, image=icons['save_icon'], relief="groove", bd=0,
+                            bg=constants.style['bg_accent'])
+    edit_button = tk.Button(tools_frame4check, image=icons['edit_icon'], relief="groove", bd=0,
+                            bg=constants.style['bg_accent'])
+    load_button = tk.Button(tools_frame4check, image=icons['load_icon'], relief="groove", bd=0,
+                            bg=constants.style['bg_accent'])
+    add_field_button = tk.Button(tools_frame4check, image=icons['add_field_icon'], relief="groove", bd=0,
+                                 bg=constants.style['bg_accent'])
+    del_field_button = tk.Button(tools_frame4check, image=icons['del_field_icon'], relief="groove", bd=0,
+                                 bg=constants.style['bg_accent'])
+    select_columns = tk.Button(tools_frame4check, text="Столбцы", relief="raised", bd=2,
+                               bg=constants.style['bg_accent'])
+    close_button = tk.Button(tools_frame4check, image=icons['close_icon'], relief="groove", bd=0,
+                             bg=constants.style['bg_accent'])
     table_normal_forms_selector = ttk.Combobox(tools_frame4check, state='readonly',
                                                values=["Общий вид", "Вид первый", "Вид второй", "Вид третий"])
 
     statistics_select = tk.Button(tools_frame4check, text="Общая статистика за период наблюдений", relief="raised",
-                                  bd=2, bg="white")
-    analysis_window = tk.Button(tools_frame4check, text="Анализ данных", relief="raised", bd=2, bg="#98FB98")
+                                  bd=2, bg=constants.style['bg_accent'])
+    analysis_window = tk.Button(tools_frame4check, text="Анализ данных", relief="raised", bd=2,
+                                bg=constants.style['analyse_button'])
 
-    # button_new = tk.Frame(tools_frame4check, bg="#B0E0E6")
+    # button_new = tk.Frame(tools_frame4check, bg=constants.style['apply_button'])
     # button_new.place(relx=0.025, rely=0.13, relwidth=0.95, relheight=0.125)
 
-    # search = tk.Frame(button_new, bg="#F8F8FF")
+    # search = tk.Frame(button_new, bg=constants.style['bg'])
     # search.place(relwidth=1, relheight=0.495)
 
-    # search_1 = tk.Label(search, bg="#F8F8FF")
+    # search_1 = tk.Label(search, bg=constants.style['bg'])
     # search_1.place(rely=0.025, relwidth=0.3625, relheight=0.95)
 
     global CHOSEN_option, GL_REQUEST
@@ -538,7 +551,7 @@ def create_toolbar(root: tk.Tk, pane: ttk.Panedwindow, load, save, create, icons
                                 values=["Без фильтра", "По названию", "По типу", "По стране", "По цунами",
                                         "По землетрясению"])
 
-    button_save_filter = tk.Button(tools_frame4check, relief="groove", bd=0, bg="white")
+    button_save_filter = tk.Button(tools_frame4check, relief="groove", bd=0, bg=constants.style['bg_accent'])
 
     analysis_window.bind("<Button-1>", lambda *args: analysis_window_event(root, pane))
     statistics_select.bind("<Button-1>", lambda *args: select_statistics_event(root, pane))
@@ -617,7 +630,7 @@ def search_call(root: tk.Tk, pane: ttk.Panedwindow, selector, option: str,
 
 # def Show_base():
 
-# win = tk.Toplevel(root, bg="#F8F8FF")
+# win = tk.Toplevel(root, bg=constants.style['bg'])
 # win.title("Статистические данные: " + string)
 # win.geometry('600x400+500+300')
 
